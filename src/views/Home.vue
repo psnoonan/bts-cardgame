@@ -3,33 +3,48 @@
         <h1>BTS Card Game</h1>
         <h2>Proof of Concept</h2>
 
-        <div>Cards Remaining: {{ deckLive.length }}</div>
-        <div>Cards Used: {{ deckUsed.length }}</div>
+        <div class="counts">
+            <div>Cards Remaining: {{ deckLive.length }}</div>
+            <div>Cards Used: {{ deckUsed.length }}</div>
+        </div>
 
-        <button v-if="deckLive.length <= shuffleLimit" @click="shuffle">
-            Shuffle
-        </button>
+        <div class="actions">
+            <transition name="fade" mode="out-in">
+                <button
+                    v-if="deckLive.length <= shuffleLimit"
+                    key="shuffle"
+                    @click="shuffle"
+                >
+                    Shuffle
+                </button>
 
-        <button v-if="deckLive.length > shuffleLimit" @click="dealCard">
-            Deal Card
-        </button>
+                <button v-else key="deal" @click="dealCard">
+                    Deal Card
+                </button>
+            </transition>
+        </div>
 
-        <div v-if="firstCard">
-            <span>First Card: </span>
+        <div v-if="firstCard" class="first-card">
+            <span class="label">First Card: </span>
             <span>{{ firstCard.label }} of {{ firstCard.suit }} </span>
             <span>({{ firstCard.value }})</span>
         </div>
 
-        <div v-if="secondCard">
-            <span>Second Card: </span>
+        <div v-if="secondCard" class="second-card">
+            <span class="label">Second Card: </span>
             <span>{{ secondCard.label }} of {{ secondCard.suit }} </span>
             <span>({{ secondCard.value }})</span>
         </div>
 
-        <div v-if="yourCard">
-            <span>Your Card: </span>
+        <div v-if="yourCard" class="your-card">
+            <span class="label">Your Card: </span>
             <span>{{ yourCard.label }} of {{ yourCard.suit }} </span>
             <span>({{ yourCard.value }})</span>
+        </div>
+
+        <div v-if="result" class="result">
+            <span class="label">Result: </span>
+            <span>{{ result }}</span>
         </div>
     </div>
 </template>
@@ -47,6 +62,7 @@ export default {
             firstCard: null,
             secondCard: null,
             yourCard: null,
+            result: '',
         };
     },
     created() {
@@ -71,12 +87,12 @@ export default {
             if (this.deckLive.length > this.shuffleLimit) {
                 if (!this.firstCard) {
                     this.firstCard = this.getRandomCard();
-                    if (this.firstCard.value === 1) {
+                    if (this.firstCard.label === 'ace') {
                         this.firstCard.value = await this.getAceValue();
                     }
                 } else if (!this.secondCard) {
                     this.secondCard = this.getRandomCard();
-                    if (this.secondCard.value === 1) {
+                    if (this.secondCard.label === 'ace') {
                         this.secondCard.value = await this.getAceValue();
                     }
                     const willPlay = await this.getChoice();
@@ -87,8 +103,8 @@ export default {
                     }
                 } else if (!this.yourCard) {
                     this.yourCard = this.getRandomCard();
-                    const result = this.getResult();
-                    await this.displayResult(result);
+                    this.result = this.getResult();
+                    await this.displayResult(this.result);
                     this.clearHand();
                 }
             } else {
@@ -137,7 +153,13 @@ export default {
             );
             const yourValue = this.yourCard.value;
             let message = '';
-            if (yourValue === lowValue || yourValue === highValue) {
+            if (
+                (this.firstCard.label === 'ace' ||
+                    this.secondCard.label === 'ace') &&
+                this.yourCard.label === 'ace'
+            ) {
+                message = 'You lose DOUBLE';
+            } else if (yourValue === lowValue || yourValue === highValue) {
                 message = 'You lose DOUBLE!';
             } else if (yourValue < lowValue || yourValue > highValue) {
                 message = 'You LOSE!';
@@ -158,9 +180,17 @@ export default {
         },
         clearHand() {
             if (this.firstCard) {
+                // reset ace value
+                if (this.firstCard.label === 'ace') {
+                    this.firstCard.value = 1;
+                }
                 this.deckUsed.push(this.firstCard);
             }
             if (this.secondCard) {
+                // reset ace value
+                if (this.secondCard.label === 'ace') {
+                    this.secondCard.value = 1;
+                }
                 this.deckUsed.push(this.secondCard);
             }
             if (this.yourCard) {
@@ -169,7 +199,58 @@ export default {
             this.firstCard = null;
             this.secondCard = null;
             this.yourCard = null;
+            this.result = '';
         },
     },
 };
 </script>
+
+<style lang="scss" scoped>
+h1 {
+    margin: 0 0 0.5rem 0;
+    line-height: 1;
+}
+h2 {
+    margin: 0 0 1rem 0;
+    line-height: 1;
+}
+.counts {
+    margin-bottom: 1rem;
+}
+.actions {
+    margin-bottom: 1rem;
+}
+button {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    text-transform: uppercase;
+    cursor: pointer;
+    &:hover {
+        background-color: goldenrod;
+    }
+}
+.first-card,
+.second-card,
+.your-card {
+    margin-bottom: 0.5rem;
+    text-transform: capitalize;
+}
+.label {
+    text-transform: uppercase;
+    opacity: 0.5;
+    font-weight: bold;
+}
+.result {
+    padding-top: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: all 350ms ease-in-out;
+}
+.fade-enter,
+.fade-leave-to {
+    opacity: 0;
+}
+</style>
