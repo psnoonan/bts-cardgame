@@ -1,28 +1,7 @@
 <template>
     <div class="home">
-        <h1>BTS Card Game</h1>
-        <h2>Proof of Concept</h2>
-
-        <div class="counts">
-            <div>Cards Remaining: {{ deckLive.length }}</div>
-            <div>Cards Used: {{ deckUsed.length }}</div>
-        </div>
-
-        <div class="actions">
-            <transition name="fade" mode="out-in">
-                <button
-                    v-if="deckLive.length <= shuffleLimit"
-                    key="shuffle"
-                    @click="shuffle"
-                >
-                    Shuffle
-                </button>
-
-                <button v-else key="deal" @click="dealCard">
-                    Deal Card
-                </button>
-            </transition>
-        </div>
+        <h2>BTS Card Game</h2>
+        <h3>Proof of Concept</h3>
 
         <div v-if="firstCard" class="first-card">
             <span class="label">First Card: </span>
@@ -45,6 +24,27 @@
         <div v-if="result" class="result">
             <span class="label">Result: </span>
             <span>{{ result }}</span>
+        </div>
+
+        <div class="actions">
+            <transition name="fade" mode="out-in">
+                <button
+                    v-if="deckLive.length <= shuffleLimit"
+                    key="shuffle"
+                    @click="shuffle"
+                >
+                    Shuffle
+                </button>
+
+                <button v-else key="deal" @click="dealCard">
+                    Deal Card
+                </button>
+            </transition>
+        </div>
+
+        <div class="counts">
+            <div>Cards Remaining: {{ deckLive.length }}</div>
+            <div>Cards Used: {{ deckUsed.length }}</div>
         </div>
     </div>
 </template>
@@ -206,16 +206,13 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-h1 {
+h2 {
     margin: 0 0 0.5rem 0;
     line-height: 1;
 }
-h2 {
+h3 {
     margin: 0 0 1rem 0;
     line-height: 1;
-}
-.counts {
-    margin-bottom: 1rem;
 }
 .actions {
     margin-bottom: 1rem;
@@ -241,6 +238,7 @@ button {
     font-weight: bold;
 }
 .result {
+    margin-bottom: 1rem;
     padding-top: 0.5rem;
     font-size: 1.2rem;
 }
