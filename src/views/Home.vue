@@ -1,13 +1,18 @@
 <template>
     <div class="home">
-        <h1>BTS Card Game Proof of Concept</h1>
+        <h1>BTS Card Game</h1>
+        <h2>Proof of Concept</h2>
 
         <div>Cards Remaining: {{ deckLive.length }}</div>
-        <div>Used Cards: {{ deckUsed.length }}</div>
+        <div>Cards Used: {{ deckUsed.length }}</div>
 
-        <button @click="shuffle">Shuffle</button>
+        <button v-if="deckLive.length <= shuffleLimit" @click="shuffle">
+            Shuffle
+        </button>
 
-        <button @click="dealCard">Deal Card</button>
+        <button v-if="deckLive.length > shuffleLimit" @click="dealCard">
+            Deal Card
+        </button>
 
         <div v-if="firstCard">
             <span>First Card: </span>
@@ -20,6 +25,12 @@
             <span>{{ secondCard.label }} of {{ secondCard.suit }} </span>
             <span>({{ secondCard.value }})</span>
         </div>
+
+        <div v-if="yourCard">
+            <span>Your Card: </span>
+            <span>{{ yourCard.label }} of {{ yourCard.suit }} </span>
+            <span>({{ yourCard.value }})</span>
+        </div>
     </div>
 </template>
 
@@ -30,11 +41,12 @@ export default {
     name: 'Home',
     data() {
         return {
+            shuffleLimit: 5,
             deckLive: [],
             deckUsed: [],
             firstCard: null,
-            middleCard: null,
             secondCard: null,
+            yourCard: null,
         };
     },
     created() {
@@ -55,13 +67,32 @@ export default {
             // reset used deck
             this.deckUsed = [];
         },
-        dealCard() {
-            if (this.deckLive.length > 3) {
+        async dealCard() {
+            if (this.deckLive.length > this.shuffleLimit) {
                 if (!this.firstCard) {
                     this.firstCard = this.getRandomCard();
+                    if (this.firstCard.value === 1) {
+                        this.firstCard.value = await this.getAceValue();
+                    }
                 } else if (!this.secondCard) {
                     this.secondCard = this.getRandomCard();
+                    if (this.secondCard.value === 1) {
+                        this.secondCard.value = await this.getAceValue();
+                    }
+                    const willPlay = await this.getChoice();
+                    if (!willPlay) {
+                        this.clearHand();
+                    } else {
+                        this.dealCard();
+                    }
+                } else if (!this.yourCard) {
+                    this.yourCard = this.getRandomCard();
+                    const result = this.getResult();
+                    await this.displayResult(result);
+                    this.clearHand();
                 }
+            } else {
+                alert('You need to shuffle');
             }
         },
         getRandomCard() {
@@ -73,19 +104,71 @@ export default {
                 const index = Math.floor(Math.random() * (max + 1));
                 // remove card from live deck and store it
                 const [card] = this.deckLive.splice(index, 1);
-                // put card in used deck
-                this.deckUsed.push(card);
-                // prompt for high or low if an ace
-                if (card.value === 1) {
-                    console.log('before prompt');
-                    const shouldSwitchToHigh = confirm(
-                        'Press OK for high, Cancel for low'
-                    );
-                    card.value = shouldSwitchToHigh ? 14 : 1;
-                }
-                console.log('after prompt');
                 return card;
             }
+        },
+        getAceValue() {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    const shouldSwitchToHigh = confirm(
+                        "It's an ACE! OK for high, Cancel for low"
+                    );
+                    const newValue = shouldSwitchToHigh ? 14 : 1;
+                    resolve(newValue);
+                }, 100);
+            });
+        },
+        getChoice() {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    const choice = confirm('OK to play, Cancel to pass');
+                    resolve(choice);
+                }, 100);
+            });
+        },
+        getResult() {
+            const lowValue = Math.min(
+                this.firstCard.value,
+                this.secondCard.value
+            );
+            const highValue = Math.max(
+                this.firstCard.value,
+                this.secondCard.value
+            );
+            const yourValue = this.yourCard.value;
+            let message = '';
+            if (yourValue === lowValue || yourValue === highValue) {
+                message = 'You lose DOUBLE!';
+            } else if (yourValue < lowValue || yourValue > highValue) {
+                message = 'You LOSE!';
+            } else if (yourValue > lowValue && yourValue < highValue) {
+                message = 'You WIN!';
+            } else {
+                message = 'There was a problem. :-(';
+            }
+            return message;
+        },
+        displayResult(result) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    alert(result);
+                    resolve();
+                }, 100);
+            });
+        },
+        clearHand() {
+            if (this.firstCard) {
+                this.deckUsed.push(this.firstCard);
+            }
+            if (this.secondCard) {
+                this.deckUsed.push(this.secondCard);
+            }
+            if (this.yourCard) {
+                this.deckUsed.push(this.yourCard);
+            }
+            this.firstCard = null;
+            this.secondCard = null;
+            this.yourCard = null;
         },
     },
 };
