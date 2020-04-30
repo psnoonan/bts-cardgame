@@ -3,22 +3,20 @@
         <h2>BTS Card Game</h2>
         <h3>Proof of Concept</h3>
 
-        <div v-if="firstCard" class="first-card">
-            <span class="label">First Card: </span>
-            <span>{{ firstCard.label }} of {{ firstCard.suit }} </span>
-            <span>({{ firstCard.value }})</span>
-        </div>
+        <div class="cards">
+            <PlayingCard
+                v-if="firstCard"
+                :card="firstCard"
+                class="first-card"
+            />
 
-        <div v-if="secondCard" class="second-card">
-            <span class="label">Second Card: </span>
-            <span>{{ secondCard.label }} of {{ secondCard.suit }} </span>
-            <span>({{ secondCard.value }})</span>
-        </div>
+            <PlayingCard v-if="yourCard" :card="yourCard" class="your-card" />
 
-        <div v-if="yourCard" class="your-card">
-            <span class="label">Your Card: </span>
-            <span>{{ yourCard.label }} of {{ yourCard.suit }} </span>
-            <span>({{ yourCard.value }})</span>
+            <PlayingCard
+                v-if="secondCard"
+                :card="secondCard"
+                class="second-card"
+            />
         </div>
 
         <div v-if="result" class="result">
@@ -52,8 +50,13 @@
 <script>
 import deckSeed from '@/helpers/deck-seed';
 
+import PlayingCard from '@/components/playing-card';
+
 export default {
     name: 'Home',
+    components: {
+        PlayingCard,
+    },
     data() {
         return {
             shuffleLimit: 5,
@@ -87,12 +90,12 @@ export default {
             if (this.deckLive.length > this.shuffleLimit) {
                 if (!this.firstCard) {
                     this.firstCard = this.getRandomCard();
-                    if (this.firstCard.label === 'ace') {
+                    if (this.firstCard.label === 'A') {
                         this.firstCard.value = await this.getAceValue();
                     }
                 } else if (!this.secondCard) {
                     this.secondCard = this.getRandomCard();
-                    if (this.secondCard.label === 'ace') {
+                    if (this.secondCard.label === 'A') {
                         this.secondCard.value = await this.getAceValue();
                     }
                     const willPlay = await this.getChoice();
@@ -154,9 +157,9 @@ export default {
             const yourValue = this.yourCard.value;
             let message = '';
             if (
-                (this.firstCard.label === 'ace' ||
-                    this.secondCard.label === 'ace') &&
-                this.yourCard.label === 'ace'
+                (this.firstCard.label === 'A' ||
+                    this.secondCard.label === 'A') &&
+                this.yourCard.label === 'A'
             ) {
                 message = 'You lose DOUBLE';
             } else if (yourValue === lowValue || yourValue === highValue) {
@@ -181,14 +184,14 @@ export default {
         clearHand() {
             if (this.firstCard) {
                 // reset ace value
-                if (this.firstCard.label === 'ace') {
+                if (this.firstCard.label === 'A') {
                     this.firstCard.value = 1;
                 }
                 this.deckUsed.push(this.firstCard);
             }
             if (this.secondCard) {
                 // reset ace value
-                if (this.secondCard.label === 'ace') {
+                if (this.secondCard.label === 'A') {
                     this.secondCard.value = 1;
                 }
                 this.deckUsed.push(this.secondCard);
@@ -214,6 +217,24 @@ h3 {
     margin: 0 0 1rem 0;
     line-height: 1;
 }
+.cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-areas: 'first-card your-card second-card';
+    grid-gap: 1rem;
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 1rem;
+}
+.first-card {
+    grid-area: first-card;
+}
+.your-card {
+    grid-area: your-card;
+}
+.second-card {
+    grid-area: second-card;
+}
 .actions {
     margin-bottom: 1rem;
 }
@@ -225,12 +246,6 @@ button {
     &:hover {
         background-color: goldenrod;
     }
-}
-.first-card,
-.second-card,
-.your-card {
-    margin-bottom: 0.5rem;
-    text-transform: capitalize;
 }
 .label {
     text-transform: uppercase;
