@@ -1,6 +1,6 @@
 const hearts = [
     {
-        value: 1,
+        value: null,
         suit: 'hearts',
         label: 'A',
     },
@@ -68,7 +68,7 @@ const hearts = [
 
 const diamonds = [
     {
-        value: 1,
+        value: null,
         suit: 'diamonds',
         label: 'A',
     },
@@ -135,7 +135,7 @@ const diamonds = [
 ];
 const clubs = [
     {
-        value: 1,
+        value: null,
         suit: 'clubs',
         label: 'A',
     },
@@ -202,7 +202,7 @@ const clubs = [
 ];
 const spades = [
     {
-        value: 1,
+        value: null,
         suit: 'spades',
         label: 'A',
     },

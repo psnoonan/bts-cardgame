@@ -1,9 +1,9 @@
 <template>
-    <div class="playing-card" :style="{ color }">
+    <div :class="['playing-card', card.suit]">
         <div class="label top-left">
             {{ card.label }}
             <IconBase
-                v-if="card.label === 'A'"
+                v-if="card.label === 'A' && card.value"
                 :key="aceValue"
                 :icon-name="aceValue"
                 :view-box="16"
@@ -39,12 +39,6 @@ export default {
         },
     },
     computed: {
-        color() {
-            if (this.card.suit === 'hearts' || this.card.suit === 'diamonds') {
-                return '#d12d36';
-            }
-            return '#000';
-        },
         aceValue() {
             return this.card.value === 1 ? 'low' : 'high';
         },
@@ -65,6 +59,14 @@ export default {
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2), 0 2px 2px rgba(0, 0, 0, 0.14),
         0 3px 1px -2px rgba(0, 0, 0, 0.12);
     border-radius: 5px;
+    &.hearts,
+    &.diamonds {
+        color: #d12d36;
+    }
+    &.clubs,
+    &.spades {
+        color: #000;
+    }
 }
 .label {
     position: absolute;
@@ -80,10 +82,10 @@ export default {
             margin-left: 5px;
             fill: currentColor;
             &.low {
-                transform: translateY(8px);
+                transform: translateY(3px);
             }
             &.high {
-                transform: translateY(-3px);
+                transform: translateY(-4px);
             }
         }
     }

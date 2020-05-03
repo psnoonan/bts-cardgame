@@ -98,12 +98,12 @@ export default {
             if (this.deckLive.length > this.shuffleLimit) {
                 if (!this.firstCard) {
                     this.firstCard = this.getRandomCard();
-                    if (this.firstCard.label === 'A') {
+                    if (this.firstCard.value === null) {
                         this.firstCard.value = await this.getAceValue();
                     }
                 } else if (!this.secondCard) {
                     this.secondCard = this.getRandomCard();
-                    if (this.secondCard.label === 'A') {
+                    if (this.secondCard.value === null) {
                         this.secondCard.value = await this.getAceValue();
                     }
                     const willPlay = await this.getChoice();
@@ -165,18 +165,23 @@ export default {
             const yourValue = this.yourCard.value;
             let message = '';
             if (
+                // Always lose double if your card is ace and either end is also ace
                 (this.firstCard.label === 'A' ||
                     this.secondCard.label === 'A') &&
                 this.yourCard.label === 'A'
             ) {
                 message = 'You lose DOUBLE';
             } else if (yourValue === lowValue || yourValue === highValue) {
+                // Also lose double if your value is the same as either end
                 message = 'You lose DOUBLE!';
             } else if (yourValue < lowValue || yourValue > highValue) {
+                // You lose your bet if your value is outside either end
                 message = 'You LOSE!';
             } else if (yourValue > lowValue && yourValue < highValue) {
+                // You win your bet if you value is inside either end
                 message = 'You WIN!';
             } else {
+                // Hopefully never get here
                 message = 'There was a problem. :-(';
             }
             return message;
@@ -193,14 +198,14 @@ export default {
             if (this.firstCard) {
                 // reset ace value
                 if (this.firstCard.label === 'A') {
-                    this.firstCard.value = 1;
+                    this.firstCard.value = null;
                 }
                 this.deckUsed.push(this.firstCard);
             }
             if (this.secondCard) {
                 // reset ace value
                 if (this.secondCard.label === 'A') {
-                    this.secondCard.value = 1;
+                    this.secondCard.value = null;
                 }
                 this.deckUsed.push(this.secondCard);
             }
