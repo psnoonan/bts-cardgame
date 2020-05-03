@@ -2,20 +2,36 @@
     <div class="playing-card" :style="{ color }">
         <div class="label top-left">
             {{ card.label }}
-            <span v-if="card.label === 'A'">
-                ({{ card.value === 1 ? 'low' : 'high' }})
-            </span>
+            <IconBase
+                v-if="card.label === 'A'"
+                :key="aceValue"
+                :icon-name="aceValue"
+                :view-box="16"
+                :class="['ace-value', aceValue]"
+                stroke="none"
+            />
         </div>
 
-        <div class="suit">{{ card.suit }}</div>
+        <IconBase
+            :key="card.suit"
+            :icon-name="card.suit"
+            :view-box="226"
+            stroke="none"
+            class="suit"
+        />
 
         <div class="label bottom-right">{{ card.label }}</div>
     </div>
 </template>
 
 <script>
+import IconBase from '@/components/icon-base';
+
 export default {
     name: 'PlayingCard',
+    components: {
+        IconBase,
+    },
     props: {
         card: {
             type: Object,
@@ -25,9 +41,12 @@ export default {
     computed: {
         color() {
             if (this.card.suit === 'hearts' || this.card.suit === 'diamonds') {
-                return 'darkred';
+                return '#d12d36';
             }
-            return 'black';
+            return '#000';
+        },
+        aceValue() {
+            return this.card.value === 1 ? 'low' : 'high';
         },
     },
 };
@@ -43,7 +62,8 @@ export default {
     font-size: 1.5rem;
     font-weight: bold;
     background-color: #fff;
-    border: 1px solid #000;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2), 0 2px 2px rgba(0, 0, 0, 0.14),
+        0 3px 1px -2px rgba(0, 0, 0, 0.12);
     border-radius: 5px;
 }
 .label {
@@ -53,6 +73,19 @@ export default {
     &.top-left {
         top: var(--pad);
         left: var(--pad);
+        display: flex;
+        align-items: center;
+        .ace-value {
+            width: 1rem;
+            margin-left: 5px;
+            fill: currentColor;
+            &.low {
+                transform: translateY(8px);
+            }
+            &.high {
+                transform: translateY(-3px);
+            }
+        }
     }
     &.bottom-right {
         bottom: var(--pad);
@@ -64,5 +97,6 @@ export default {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    width: 2rem;
 }
 </style>

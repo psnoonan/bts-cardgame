@@ -3,21 +3,28 @@
         <h2>BTS Card Game</h2>
         <h3>Proof of Concept</h3>
 
-        <div class="cards">
+        <transition-group name="fade" tag="div" class="cards">
             <PlayingCard
                 v-if="firstCard"
+                :key="`first-card-${firstCard.label}`"
                 :card="firstCard"
                 class="first-card"
             />
 
-            <PlayingCard v-if="yourCard" :card="yourCard" class="your-card" />
+            <PlayingCard
+                v-if="yourCard"
+                :key="`your-card-${yourCard.label}`"
+                :card="yourCard"
+                class="your-card"
+            />
 
             <PlayingCard
                 v-if="secondCard"
+                :key="`second-card-${secondCard.label}`"
                 :card="secondCard"
                 class="second-card"
             />
-        </div>
+        </transition-group>
 
         <div v-if="result" class="result">
             <span class="label">Result: </span>
@@ -70,6 +77,7 @@ export default {
     },
     created() {
         this.deckUsed = deckSeed;
+        this.shuffle();
     },
     methods: {
         shuffle() {
