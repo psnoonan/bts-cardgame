@@ -3,28 +3,7 @@
         <h2>BTS Card Game</h2>
         <h3>Proof of Concept</h3>
 
-        <transition-group name="fade" tag="div" class="cards">
-            <PlayingCard
-                v-if="firstCard"
-                :key="`first-card-${firstCard.label}`"
-                :card="firstCard"
-                class="first-card"
-            />
-
-            <PlayingCard
-                v-if="yourCard"
-                :key="`your-card-${yourCard.label}`"
-                :card="yourCard"
-                class="your-card"
-            />
-
-            <PlayingCard
-                v-if="secondCard"
-                :key="`second-card-${secondCard.label}`"
-                :card="secondCard"
-                class="second-card"
-            />
-        </transition-group>
+        <Hand :hand="hand" />
 
         <div v-if="result" class="result">
             <span class="label">Result: </span>
@@ -57,23 +36,32 @@
 <script>
 import deckSeed from '@/helpers/deck-seed';
 
-import PlayingCard from '@/components/playing-card';
+import Hand from '@/components/hand';
 
 export default {
     name: 'Home',
     components: {
-        PlayingCard,
+        Hand,
     },
     data() {
         return {
             shuffleLimit: 5,
             deckLive: [],
             deckUsed: [],
-            firstCard: null,
-            secondCard: null,
-            yourCard: null,
+            hand: [],
             result: '',
         };
+    },
+    computed: {
+        firstCard() {
+            return this.hand[0];
+        },
+        secondCard() {
+            return this.hand[1];
+        },
+        yourCard() {
+            return this.hand[2];
+        },
     },
     created() {
         this.deckUsed = deckSeed;
@@ -96,24 +84,19 @@ export default {
         },
         async dealCard() {
             if (this.deckLive.length > this.shuffleLimit) {
-                if (!this.firstCard) {
-                    this.firstCard = this.getRandomCard();
-                    if (this.firstCard.value === null) {
-                        this.firstCard.value = await this.getAceValue();
-                    }
-                } else if (!this.secondCard) {
-                    this.secondCard = this.getRandomCard();
-                    if (this.secondCard.value === null) {
-                        this.secondCard.value = await this.getAceValue();
-                    }
+                const card = this.getRandomCard();
+                this.hand.push(card);
+                if (card.value === null && this.hand.length <= 2) {
+                    card.value = await this.getAceValue();
+                }
+                if (this.hand.length === 2) {
                     const willPlay = await this.getChoice();
                     if (!willPlay) {
                         this.clearHand();
                     } else {
                         this.dealCard();
                     }
-                } else if (!this.yourCard) {
-                    this.yourCard = this.getRandomCard();
+                } else if (this.hand.length === 3) {
                     this.result = this.getResult();
                     await this.displayResult(this.result);
                     this.clearHand();
@@ -195,26 +178,13 @@ export default {
             });
         },
         clearHand() {
-            if (this.firstCard) {
-                // reset ace value
-                if (this.firstCard.label === 'A') {
-                    this.firstCard.value = null;
+            this.hand.forEach(card => {
+                if (card.label === 'A') {
+                    card.value = null;
                 }
-                this.deckUsed.push(this.firstCard);
-            }
-            if (this.secondCard) {
-                // reset ace value
-                if (this.secondCard.label === 'A') {
-                    this.secondCard.value = null;
-                }
-                this.deckUsed.push(this.secondCard);
-            }
-            if (this.yourCard) {
-                this.deckUsed.push(this.yourCard);
-            }
-            this.firstCard = null;
-            this.secondCard = null;
-            this.yourCard = null;
+                this.deckUsed.push(card);
+            });
+            this.hand = [];
             this.result = '';
         },
     },
@@ -229,24 +199,6 @@ h2 {
 h3 {
     margin: 0 0 1rem 0;
     line-height: 1;
-}
-.cards {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-template-areas: 'first-card your-card second-card';
-    grid-gap: 1rem;
-    width: 100%;
-    max-width: 400px;
-    margin-bottom: 1rem;
-}
-.first-card {
-    grid-area: first-card;
-}
-.your-card {
-    grid-area: your-card;
-}
-.second-card {
-    grid-area: second-card;
 }
 .actions {
     margin-bottom: 1rem;
