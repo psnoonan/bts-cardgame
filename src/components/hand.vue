@@ -57,4 +57,14 @@ export default {
 .third {
     grid-area: third;
 }
+
+.fade-down-enter-active,
+.fade-down-leave-active {
+    transition: all 250ms cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.fade-down-enter,
+.fade-down-leave-to {
+    opacity: 0;
+    transform: translateY(-25%);
+}
 </style>

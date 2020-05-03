@@ -6,9 +6,9 @@
 
 <style lang="scss">
 html {
-    padding: 30px;
+    padding: 2rem;
     font-size: 18px;
-    font-family: Helvetica, sans-serif;
-    background-color: #efefef;
+    font-family: Dosis, sans-serif;
+    background-color: #fbf7f6;
 }
 </style>

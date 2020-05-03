@@ -1,7 +1,6 @@
 <template>
     <div class="home">
-        <h2>BTS Card Game</h2>
-        <h3>Proof of Concept</h3>
+        <LayoutHeader />
 
         <Hand :hand="hand" />
 
@@ -36,11 +35,13 @@
 <script>
 import deckSeed from '@/helpers/deck-seed';
 
+import LayoutHeader from '@/components/layout/header';
 import Hand from '@/components/hand';
 
 export default {
     name: 'Home',
     components: {
+        LayoutHeader,
         Hand,
     },
     data() {
@@ -225,7 +226,7 @@ button {
 
 .fade-enter-active,
 .fade-leave-active {
-    transition: all 350ms ease-in-out;
+    transition: all 250ms cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 .fade-enter,
 .fade-leave-to {
