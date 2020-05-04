@@ -24,11 +24,6 @@ header {
     border-radius: 1rem;
     background-color: #332a7c;
     color: #fff;
-    h1,
-    h2 {
-        margin: 0;
-        line-height: 1;
-    }
     h1 {
         margin-bottom: 0.25rem;
     }

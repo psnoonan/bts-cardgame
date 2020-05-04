@@ -1,33 +1,26 @@
 <template>
     <div class="home">
-        <LayoutHeader />
+        <LayoutHeader class="layout-header" />
 
-        <Hand :hand="hand" />
+        <Table :table="table" class="layout-table" />
 
-        <div v-if="result" class="result">
-            <span class="label">Result: </span>
-            <span>{{ result }}</span>
+        <div class="layout-actions">
+            <button @click="dealCard">
+                Deal Card
+            </button>
+
+            <button @click="clearTable">
+                Clear Table
+            </button>
         </div>
 
-        <div class="actions">
-            <transition name="fade" mode="out-in">
-                <button
-                    v-if="deckLive.length <= shuffleLimit"
-                    key="shuffle"
-                    @click="shuffle"
-                >
-                    Shuffle
-                </button>
+        <Feed :feed="feed" class="layout-feed" />
 
-                <button v-else key="deal" @click="dealCard">
-                    Deal Card
-                </button>
-            </transition>
-        </div>
-
-        <div class="counts">
-            <div>Cards Remaining: {{ deckLive.length }}</div>
-            <div>Cards Used: {{ deckUsed.length }}</div>
+        <div class="info">
+            <div class="counts">
+                <div>Deck: {{ deckLive.length }}</div>
+                <div>Discard Pile: {{ deckUsed.length }}</div>
+            </div>
         </div>
     </div>
 </template>
@@ -36,74 +29,75 @@
 import deckSeed from '@/helpers/deck-seed';
 
 import LayoutHeader from '@/components/layout/header';
-import Hand from '@/components/hand';
+import Table from '@/components/table';
+import Feed from '@/components/feed';
 
 export default {
     name: 'Home',
     components: {
         LayoutHeader,
-        Hand,
+        Table,
+        Feed,
     },
     data() {
         return {
             shuffleLimit: 5,
             deckLive: [],
             deckUsed: [],
-            hand: [],
-            result: '',
+            table: [],
+            feed: [],
         };
     },
     computed: {
         firstCard() {
-            return this.hand[0];
+            return this.table[0];
         },
         secondCard() {
-            return this.hand[1];
+            return this.table[1];
         },
         yourCard() {
-            return this.hand[2];
+            return this.table[2];
         },
     },
-    created() {
+    async created() {
         this.deckUsed = deckSeed;
-        this.shuffle();
+        await this.shuffle();
     },
     methods: {
         shuffle() {
-            // assign used deck to variable for typing ease
-            const arr = this.deckUsed;
-            for (let i = arr.length - 1; i > 0; i--) {
-                // Set j to random index from 0 to i
-                let j = Math.floor(Math.random() * (i + 1));
-                // swap element array[i] and array [j] with destructuring
-                [arr[i], arr[j]] = [arr[j], arr[i]];
-            }
-            // add shuffled cards to end of live deck
-            this.deckLive.push(...arr);
-            // reset used deck
-            this.deckUsed = [];
+            return new Promise(resolve => {
+                const arr = this.deckUsed;
+                for (let i = arr.length - 1; i > 0; i--) {
+                    // Set j to random index from 0 to i
+                    let j = Math.floor(Math.random() * (i + 1));
+                    // swap element array[i] and array [j] with destructuring
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
+                // add shuffled cards to end of live deck
+                this.deckLive.push(...arr);
+                // reset used deck
+                this.deckUsed = [];
+                resolve();
+            });
         },
         async dealCard() {
-            if (this.deckLive.length > this.shuffleLimit) {
-                const card = this.getRandomCard();
-                this.hand.push(card);
-                if (card.value === null && this.hand.length <= 2) {
-                    card.value = await this.getAceValue();
+            if (this.deckLive.length <= this.shuffleLimit) {
+                await this.shuffle();
+            }
+            const card = this.getRandomCard();
+            this.table.push(card);
+            if (card.value === null && this.table.length <= 2) {
+                card.value = await this.getAceValue();
+            }
+            if (this.table.length === 2) {
+                const willPlay = await this.getChoice();
+                if (!willPlay) {
+                    this.clearTable();
+                } else {
+                    this.dealCard();
                 }
-                if (this.hand.length === 2) {
-                    const willPlay = await this.getChoice();
-                    if (!willPlay) {
-                        this.clearHand();
-                    } else {
-                        this.dealCard();
-                    }
-                } else if (this.hand.length === 3) {
-                    this.result = this.getResult();
-                    await this.displayResult(this.result);
-                    this.clearHand();
-                }
-            } else {
-                alert('You need to shuffle');
+            } else if (this.table.length === 3) {
+                this.feed.unshift(this.getResult());
             }
         },
         getRandomCard() {
@@ -170,22 +164,14 @@ export default {
             }
             return message;
         },
-        displayResult(result) {
-            return new Promise(resolve => {
-                setTimeout(() => {
-                    alert(result);
-                    resolve();
-                }, 100);
-            });
-        },
-        clearHand() {
-            this.hand.forEach(card => {
+        clearTable() {
+            this.table.forEach(card => {
                 if (card.label === 'A') {
                     card.value = null;
                 }
                 this.deckUsed.push(card);
             });
-            this.hand = [];
+            this.table = [];
             this.result = '';
         },
     },
@@ -193,6 +179,38 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.home {
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 3fr 4fr 3fr;
+    grid-gap: 2rem;
+    grid-template-areas:
+        'header header header'
+        'feed info players'
+        'feed table players'
+        'feed actions players';
+}
+.layout-header {
+    grid-area: header;
+}
+.layout-results {
+    grid-area: results;
+}
+.layout-table {
+    grid-area: table;
+    align-self: center;
+}
+.layout-actions {
+    grid-area: actions;
+}
+.layout-feed {
+    grid-area: feed;
+}
+.info {
+    grid-area: info;
+}
 h2 {
     margin: 0 0 0.5rem 0;
     line-height: 1;
@@ -231,5 +249,33 @@ button {
 .fade-enter,
 .fade-leave-to {
     opacity: 0;
+}
+
+@media screen and (max-width: 1200px) {
+    .home {
+        grid-template-columns: 2.5fr 5fr 2.5fr;
+    }
+}
+@media screen and (max-width: 990px) {
+    .home {
+        grid-template-columns: 6fr 3fr;
+        grid-template-areas:
+            'header header'
+            'info players'
+            'table players'
+            'actions players'
+            'feed players';
+    }
+}
+@media screen and (max-width: 750px) {
+    .home {
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas:
+            'header header'
+            'info info'
+            'table table'
+            'actions actions'
+            'feed players';
+    }
 }
 </style>
