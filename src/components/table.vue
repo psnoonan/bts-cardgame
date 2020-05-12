@@ -100,22 +100,35 @@ export default {
     left: 0.5rem;
 }
 
-.fade-down-enter-active,
-.fade-down-leave-active {
+.fade-down-enter-active {
     transition: all 250ms cubic-bezier(0.25, 0.8, 0.25, 1);
     transition-delay: 250ms;
 }
-.fade-down-enter,
+.fade-down-enter {
+    opacity: 0;
+    transform: translateY(-25%);
+}
+// separate enter and leave to sync with button transition
+.fade-down-leave-active {
+    transition: all 250ms cubic-bezier(0.25, 0.8, 0.25, 1);
+}
 .fade-down-leave-to {
     opacity: 0;
     transform: translateY(-25%);
 }
 
-.shrink-enter-active,
+.shrink-enter-active {
+    transition: all 350ms cubic-bezier(0.25, 0.8, 0.25, 1);
+    transition-delay: 250ms;
+}
+.shrink-enter {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+}
+// separate enter and leave to sync with card transition
 .shrink-leave-active {
     transition: all 350ms cubic-bezier(0.25, 0.8, 0.25, 1);
 }
-.shrink-enter,
 .shrink-leave-to {
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.5);
