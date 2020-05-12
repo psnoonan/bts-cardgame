@@ -4,6 +4,7 @@
             <transition name="shrink">
                 <button
                     v-if="i - 1 === nextCard"
+                    key="deal-button"
                     class="deal-button"
                     @click="$emit('deal-card')"
                 >
@@ -14,8 +15,11 @@
             <transition name="fade-down">
                 <PlayingCard
                     v-if="table[i - 1]"
+                    key="card"
                     :card="table[i - 1]"
                     class="card"
+                    @select-high="$emit('select-high')"
+                    @select-low="$emit('select-low')"
                 />
             </transition>
         </div>
@@ -76,10 +80,14 @@ export default {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    padding: 0.5rem 1rem;
+    width: 100%;
+    max-width: 75%;
+    padding: 0.5rem;
     font-size: 1rem;
     font-weight: 700;
     line-height: 1;
+    color: #fff;
+    text-shadow: 1px 1px 1px rgba(#454545, 0.4);
     text-transform: uppercase;
     border: none;
     border-radius: 100px;
@@ -100,9 +108,15 @@ export default {
     left: 0.5rem;
 }
 
+@media screen and (max-width: 500px) {
+    .table {
+        padding: 1rem;
+    }
+}
+
 .fade-down-enter-active {
-    transition: all 250ms cubic-bezier(0.25, 0.8, 0.25, 1);
-    transition-delay: 250ms;
+    transition: all 300ms cubic-bezier(0.25, 0.8, 0.25, 1);
+    transition-delay: 300ms;
 }
 .fade-down-enter {
     opacity: 0;
@@ -110,7 +124,7 @@ export default {
 }
 // separate enter and leave to sync with button transition
 .fade-down-leave-active {
-    transition: all 250ms cubic-bezier(0.25, 0.8, 0.25, 1);
+    transition: all 300ms cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 .fade-down-leave-to {
     opacity: 0;
@@ -118,8 +132,8 @@ export default {
 }
 
 .shrink-enter-active {
-    transition: all 350ms cubic-bezier(0.25, 0.8, 0.25, 1);
-    transition-delay: 250ms;
+    transition: all 300ms cubic-bezier(0.25, 0.8, 0.25, 1);
+    transition-delay: 300ms;
 }
 .shrink-enter {
     opacity: 0;
@@ -127,16 +141,10 @@ export default {
 }
 // separate enter and leave to sync with card transition
 .shrink-leave-active {
-    transition: all 350ms cubic-bezier(0.25, 0.8, 0.25, 1);
+    transition: all 300ms cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 .shrink-leave-to {
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.5);
-}
-
-@media screen and (max-width: 500px) {
-    .table {
-        padding: 1rem;
-    }
 }
 </style>

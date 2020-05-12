@@ -7,6 +7,8 @@
             :next-card="nextCard"
             class="layout-table"
             @deal-card="dealCard"
+            @select-high="table[nextCard].value = 14"
+            @select-low="table[nextCard].value = 1"
         />
 
         <div class="layout-actions">
@@ -96,9 +98,6 @@ export default {
             }
             const card = this.getRandomCard();
             this.table.push(card);
-            if (card.value === null && this.table.length <= 2) {
-                card.value = await this.getAceValue();
-            }
             if (this.table.length === 2) {
                 const willPlay = await this.getChoice();
                 if (!willPlay) {
@@ -121,17 +120,6 @@ export default {
                 const [card] = this.deckLive.splice(index, 1);
                 return card;
             }
-        },
-        getAceValue() {
-            return new Promise(resolve => {
-                setTimeout(() => {
-                    const shouldSwitchToHigh = confirm(
-                        "It's an ACE! OK for high, Cancel for low"
-                    );
-                    const newValue = shouldSwitchToHigh ? 14 : 1;
-                    resolve(newValue);
-                }, 100);
-            });
         },
         getChoice() {
             return new Promise(resolve => {
