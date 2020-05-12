@@ -2,13 +2,14 @@
     <div class="home">
         <LayoutHeader class="layout-header" />
 
-        <Table :table="table" class="layout-table" />
+        <Table
+            :table="table"
+            :next-card="nextCard"
+            class="layout-table"
+            @deal-card="dealCard"
+        />
 
         <div class="layout-actions">
-            <button @click="dealCard">
-                Deal Card
-            </button>
-
             <button @click="clearTable">
                 Clear Table
             </button>
@@ -57,6 +58,15 @@ export default {
         },
         yourCard() {
             return this.table[2];
+        },
+        nextCard() {
+            if (!this.firstCard || !this.firstCard.value) {
+                return 0;
+            } else if (!this.secondCard || !this.secondCard.value) {
+                return 1;
+            } else {
+                return 2;
+            }
         },
     },
     async created() {
