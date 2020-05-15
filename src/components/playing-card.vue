@@ -21,12 +21,15 @@
         />
 
         <transition name="fade">
-            <div v-if="!card.value" key="card-value" class="value-prompt">
-                <button class="value value--high" @click="$emit('select-high')">
+            <div v-if="!card.value" key="card-value" class="choice-prompt">
+                <button
+                    class="choice choice--high"
+                    @click="$emit('select-high')"
+                >
                     High
                 </button>
 
-                <button class="value value--low" @click="$emit('select-low')">
+                <button class="choice choice--low" @click="$emit('select-low')">
                     Low
                 </button>
             </div>
@@ -100,7 +103,7 @@ export default {
     align-self: flex-end;
     width: 85%;
 }
-.value-prompt {
+.choice-prompt {
     position: absolute;
     top: 0;
     right: 0;
@@ -111,12 +114,12 @@ export default {
     flex-direction: column;
     justify-content: flex-end;
     align-items: center;
-    .value {
+    .choice {
         display: flex;
         justify-content: center;
         align-items: center;
         width: 85%;
-        margin: 0 10px 0.5rem 10px;
+        margin: 0.5rem 10px;
         padding: 0.5rem;
         font-size: 1rem;
         font-weight: 700;
@@ -129,10 +132,6 @@ export default {
         background-color: #fca001;
         cursor: pointer;
         transition: all 250ms cubic-bezier(0.25, 0.8, 0.25, 1);
-        .ace-value {
-            width: 1rem;
-            margin-left: 5px;
-        }
         &:hover,
         &:focus {
             outline: none;

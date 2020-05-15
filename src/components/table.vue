@@ -2,14 +2,36 @@
     <div class="table">
         <div v-for="i in 3" :key="i" :class="['spot', `spot--${i - 1}`]">
             <transition name="shrink">
-                <button
-                    v-if="i - 1 === nextCard"
-                    key="deal-button"
-                    class="deal-button"
-                    @click="$emit('deal-card')"
-                >
-                    Deal
-                </button>
+                <template v-if="i - 1 === nextCard">
+                    <div
+                        v-if="nextCard === 2"
+                        key="play-or-pass"
+                        class="choice-prompt"
+                    >
+                        <button
+                            class="choice choice--play"
+                            @click="$emit('play')"
+                        >
+                            Play
+                        </button>
+
+                        <button
+                            class="choice choice--pass"
+                            @click="$emit('pass')"
+                        >
+                            Pass
+                        </button>
+                    </div>
+
+                    <button
+                        v-else
+                        key="deal-button"
+                        class="deal-button"
+                        @click="$emit('deal-card')"
+                    >
+                        Deal
+                    </button>
+                </template>
             </transition>
 
             <transition name="fade-down">
@@ -98,6 +120,38 @@ export default {
     &:focus {
         outline: none;
         transform: translate(-50%, -50%) rotate(-5deg);
+    }
+}
+.choice-prompt {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    max-width: 75%;
+    .choice {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        margin: 0.5rem 0;
+        padding: 0.5rem;
+        font-size: 1rem;
+        font-weight: 700;
+        line-height: 1;
+        color: #fff;
+        text-shadow: 1px 1px 1px rgba(#454545, 0.4);
+        text-transform: uppercase;
+        border: none;
+        border-radius: 100px;
+        background-color: #fca001;
+        cursor: pointer;
+        transition: all 250ms cubic-bezier(0.25, 0.8, 0.25, 1);
+        &:hover,
+        &:focus {
+            outline: none;
+            transform: rotate(-5deg);
+        }
     }
 }
 .card {

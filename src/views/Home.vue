@@ -9,6 +9,8 @@
             @deal-card="dealCard"
             @select-high="table[nextCard].value = 14"
             @select-low="table[nextCard].value = 1"
+            @play="dealCard"
+            @pass="clearTable"
         />
 
         <div class="layout-actions">
@@ -98,14 +100,7 @@ export default {
             }
             const card = this.getRandomCard();
             this.table.push(card);
-            if (this.table.length === 2) {
-                const willPlay = await this.getChoice();
-                if (!willPlay) {
-                    this.clearTable();
-                } else {
-                    this.dealCard();
-                }
-            } else if (this.table.length === 3) {
+            if (this.table.length === 3) {
                 this.feed.unshift(this.getResult());
             }
         },
