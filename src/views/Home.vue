@@ -4,8 +4,8 @@
 
         <div class="info">
             <div class="counts">
-                <div>Deck: {{ deckLive.length }}</div>
-                <div>Discard Pile: {{ deckUsed.length }}</div>
+                <div><strong>Deck:</strong> {{ deckLive.length }}</div>
+                <div><strong>Discard Pile:</strong> {{ deckUsed.length }}</div>
             </div>
         </div>
 
@@ -102,8 +102,11 @@ h3 {
     margin: 0 0 1rem 0;
     line-height: 1;
 }
-.actions {
-    margin-bottom: 1rem;
+.counts {
+    font-size: 1.2rem;
+    strong {
+        opacity: 0.4;
+    }
 }
 button {
     padding: 0.5rem 1rem;
