@@ -5,13 +5,14 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
+
 export default {
     name: 'Feed',
-    props: {
-        feed: {
-            type: Array,
-            required: true,
-        },
+    computed: {
+        ...mapState({
+            feed: state => state.feed.list,
+        }),
     },
 };
 </script>

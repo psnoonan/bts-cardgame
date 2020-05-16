@@ -32,7 +32,7 @@ h6 {
     margin: 0;
     padding: 0;
 }
-@media screen and (max-width: 400px) {
+@media screen and (max-width: 500px) {
     html {
         padding: 1rem;
     }

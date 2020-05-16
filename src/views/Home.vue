@@ -2,24 +2,11 @@
     <div class="home">
         <LayoutHeader class="layout-header" />
 
-        <Table
-            :table="table"
-            :next-card="nextCard"
-            class="layout-table"
-            @deal-card="dealCard"
-            @select-high="table[nextCard].value = 14"
-            @select-low="table[nextCard].value = 1"
-            @play="dealCard"
-            @pass="clearTable"
-        />
+        <Table class="layout-table" />
 
-        <div class="layout-actions">
-            <button @click="clearTable">
-                Clear Table
-            </button>
-        </div>
+        <div class="layout-actions" />
 
-        <Feed :feed="feed" class="layout-feed" />
+        <Feed class="layout-feed" />
 
         <div class="info">
             <div class="counts">
@@ -31,7 +18,7 @@
 </template>
 
 <script>
-import deckSeed from '@/helpers/deck-seed';
+import { mapState, mapMutations, mapGetters, mapActions } from 'vuex';
 
 import LayoutHeader from '@/components/layout/header';
 import Table from '@/components/table';
@@ -44,129 +31,37 @@ export default {
         Table,
         Feed,
     },
-    data() {
-        return {
-            shuffleLimit: 5,
-            deckLive: [],
-            deckUsed: [],
-            table: [],
-            feed: [],
-        };
-    },
     computed: {
-        firstCard() {
-            return this.table[0];
-        },
-        secondCard() {
-            return this.table[1];
-        },
-        yourCard() {
-            return this.table[2];
-        },
-        nextCard() {
-            if (!this.firstCard || !this.firstCard.value) {
-                return 0;
-            } else if (!this.secondCard || !this.secondCard.value) {
-                return 1;
-            } else {
-                return 2;
+        ...mapState({
+            deckLive: state => state.deck.live,
+            deckUsed: state => state.deck.used,
+        }),
+        ...mapGetters({
+            yourCard: 'table/yourCard',
+        }),
+    },
+    watch: {
+        async yourCard(newCard, oldCard) {
+            if (newCard && !oldCard) {
+                this.addToFeed(await this.getResult());
+                setTimeout(() => {
+                    this.clearTable();
+                }, 1500);
             }
         },
     },
     async created() {
-        this.deckUsed = deckSeed;
-        await this.shuffle();
+        this.init();
     },
     methods: {
-        shuffle() {
-            return new Promise(resolve => {
-                const arr = this.deckUsed;
-                for (let i = arr.length - 1; i > 0; i--) {
-                    // Set j to random index from 0 to i
-                    let j = Math.floor(Math.random() * (i + 1));
-                    // swap element array[i] and array [j] with destructuring
-                    [arr[i], arr[j]] = [arr[j], arr[i]];
-                }
-                // add shuffled cards to end of live deck
-                this.deckLive.push(...arr);
-                // reset used deck
-                this.deckUsed = [];
-                resolve();
-            });
-        },
-        async dealCard() {
-            if (this.deckLive.length <= this.shuffleLimit) {
-                await this.shuffle();
-            }
-            const card = this.getRandomCard();
-            this.table.push(card);
-            if (this.table.length === 3) {
-                this.feed.unshift(this.getResult());
-            }
-        },
-        getRandomCard() {
-            if (this.deckLive.length) {
-                // max is the highest index in live deck
-                // min is always zero, so it is removed from equation
-                const max = this.deckLive.length - 1;
-                // get random index from the live deck
-                const index = Math.floor(Math.random() * (max + 1));
-                // remove card from live deck and store it
-                const [card] = this.deckLive.splice(index, 1);
-                return card;
-            }
-        },
-        getChoice() {
-            return new Promise(resolve => {
-                setTimeout(() => {
-                    const choice = confirm('OK to play, Cancel to pass');
-                    resolve(choice);
-                }, 100);
-            });
-        },
-        getResult() {
-            const lowValue = Math.min(
-                this.firstCard.value,
-                this.secondCard.value
-            );
-            const highValue = Math.max(
-                this.firstCard.value,
-                this.secondCard.value
-            );
-            const yourValue = this.yourCard.value;
-            let message = '';
-            if (
-                // Always lose double if your card is ace and either end is also ace
-                (this.firstCard.label === 'A' ||
-                    this.secondCard.label === 'A') &&
-                this.yourCard.label === 'A'
-            ) {
-                message = 'You lose DOUBLE';
-            } else if (yourValue === lowValue || yourValue === highValue) {
-                // Also lose double if your value is the same as either end
-                message = 'You lose DOUBLE!';
-            } else if (yourValue < lowValue || yourValue > highValue) {
-                // You lose your bet if your value is outside either end
-                message = 'You LOSE!';
-            } else if (yourValue > lowValue && yourValue < highValue) {
-                // You win your bet if you value is inside either end
-                message = 'You WIN!';
-            } else {
-                // Hopefully never get here
-                message = 'There was a problem. :-(';
-            }
-            return message;
-        },
-        clearTable() {
-            this.table.forEach(card => {
-                if (card.label === 'A') {
-                    card.value = null;
-                }
-                this.deckUsed.push(card);
-            });
-            this.table = [];
-            this.result = '';
-        },
+        ...mapMutations({
+            addToFeed: 'feed/ADD_TO_LIST',
+        }),
+        ...mapActions({
+            init: 'INIT',
+            getResult: 'table/GET_RESULT',
+            clearTable: 'table/CLEAR_HAND',
+        }),
     },
 };
 </script>

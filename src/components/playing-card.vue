@@ -21,15 +21,22 @@
         />
 
         <transition name="fade">
-            <div v-if="!card.value" key="card-value" class="choice-prompt">
+            <div
+                v-if="!card.value && index !== 2"
+                key="card-value"
+                class="choice-prompt"
+            >
                 <button
                     class="choice choice--high"
-                    @click="$emit('select-high')"
+                    @click="setAceValue({ index, value: 14 })"
                 >
                     High
                 </button>
 
-                <button class="choice choice--low" @click="$emit('select-low')">
+                <button
+                    class="choice choice--low"
+                    @click="setAceValue({ index, value: 1 })"
+                >
                     Low
                 </button>
             </div>
@@ -38,6 +45,8 @@
 </template>
 
 <script>
+import { mapMutations } from 'vuex';
+
 import IconBase from '@/components/icon-base';
 
 export default {
@@ -50,11 +59,23 @@ export default {
             type: Object,
             required: true,
         },
+        index: {
+            type: Number,
+            required: true,
+        },
     },
     computed: {
         aceValue() {
-            return this.card.value === 1 ? 'low' : 'high';
+            if (this.card.label === 'A') {
+                return this.card.value === 1 ? 'low' : 'high';
+            }
+            return null;
         },
+    },
+    methods: {
+        ...mapMutations({
+            setAceValue: 'table/SET_ACE_VALUE',
+        }),
     },
 };
 </script>
@@ -109,7 +130,12 @@ export default {
     right: 0;
     bottom: 0;
     left: 0;
-    background-color: rgba(#000, 0.45);
+    background: rgba(#000, 0.4);
+    background: linear-gradient(
+        -25deg,
+        rgba(#332a7c, 0.85) 55%,
+        rgba(#fff, 0) 55%
+    );
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
@@ -119,7 +145,7 @@ export default {
         justify-content: center;
         align-items: center;
         width: 85%;
-        margin: 0.5rem 10px;
+        margin: 0 10px 0.5rem 10px;
         padding: 0.5rem;
         font-size: 1rem;
         font-weight: 700;
@@ -129,6 +155,7 @@ export default {
         text-transform: uppercase;
         border: none;
         border-radius: 100px;
+        box-shadow: 1px 1px 1px rgba(#454545, 0.4);
         background-color: #fca001;
         cursor: pointer;
         transition: all 250ms cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -163,6 +190,11 @@ export default {
 @media screen and (max-width: 550px) {
     .label {
         font-size: 48px;
+    }
+    .choice-prompt {
+        .choice {
+            margin: 0 10px 0.25rem 10px;
+        }
     }
 }
 @media screen and (max-width: 450px) {

@@ -8,17 +8,11 @@
                         key="play-or-pass"
                         class="choice-prompt"
                     >
-                        <button
-                            class="choice choice--play"
-                            @click="$emit('play')"
-                        >
+                        <button class="choice choice--play" @click="dealCard">
                             Play
                         </button>
 
-                        <button
-                            class="choice choice--pass"
-                            @click="$emit('pass')"
-                        >
+                        <button class="choice choice--pass" @click="pass">
                             Pass
                         </button>
                     </div>
@@ -27,7 +21,7 @@
                         v-else
                         key="deal-button"
                         class="deal-button"
-                        @click="$emit('deal-card')"
+                        @click="dealCard"
                     >
                         Deal
                     </button>
@@ -36,12 +30,11 @@
 
             <transition name="fade-down">
                 <PlayingCard
-                    v-if="table[i - 1]"
+                    v-if="hand[i - 1]"
                     key="card"
-                    :card="table[i - 1]"
+                    :card="hand[i - 1]"
+                    :index="i - 1"
                     class="card"
-                    @select-high="$emit('select-high')"
-                    @select-low="$emit('select-low')"
                 />
             </transition>
         </div>
@@ -49,6 +42,8 @@
 </template>
 
 <script>
+import { mapState, mapMutations, mapGetters, mapActions } from 'vuex';
+
 import PlayingCard from '@/components/playing-card';
 
 export default {
@@ -56,14 +51,25 @@ export default {
     components: {
         PlayingCard,
     },
-    props: {
-        table: {
-            type: Array,
-            required: true,
-        },
-        nextCard: {
-            type: Number,
-            required: true,
+    computed: {
+        ...mapState({
+            hand: state => state.table.hand,
+        }),
+        ...mapGetters({
+            nextCard: 'table/nextCard',
+        }),
+    },
+    methods: {
+        ...mapMutations({
+            addToFeed: 'feed/ADD_TO_LIST',
+        }),
+        ...mapActions({
+            dealCard: 'deck/DEAL_CARD',
+            clearTable: 'table/CLEAR_HAND',
+        }),
+        pass() {
+            this.addToFeed('You Passed.');
+            this.clearTable();
         },
     },
 };
