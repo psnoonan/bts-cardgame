@@ -81,9 +81,6 @@ export default {
 .layout-header {
     grid-area: header;
 }
-.layout-results {
-    grid-area: results;
-}
 .layout-table {
     grid-area: table;
     align-self: start;
@@ -93,39 +90,10 @@ export default {
 }
 .info {
     grid-area: info;
-}
-h2 {
-    margin: 0 0 0.5rem 0;
-    line-height: 1;
-}
-h3 {
-    margin: 0 0 1rem 0;
-    line-height: 1;
-}
-.counts {
     font-size: 1.2rem;
     strong {
         opacity: 0.4;
     }
-}
-button {
-    padding: 0.5rem 1rem;
-    font-size: 1rem;
-    text-transform: uppercase;
-    cursor: pointer;
-    &:hover {
-        background-color: goldenrod;
-    }
-}
-.label {
-    text-transform: uppercase;
-    opacity: 0.5;
-    font-weight: bold;
-}
-.result {
-    margin-bottom: 1rem;
-    padding-top: 0.5rem;
-    font-size: 1.2rem;
 }
 
 .fade-enter-active,
