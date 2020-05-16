@@ -2,18 +2,16 @@
     <div class="home">
         <LayoutHeader class="layout-header" />
 
-        <Table class="layout-table" />
-
-        <div class="layout-actions" />
-
-        <Feed class="layout-feed" />
-
         <div class="info">
             <div class="counts">
                 <div>Deck: {{ deckLive.length }}</div>
                 <div>Discard Pile: {{ deckUsed.length }}</div>
             </div>
         </div>
+
+        <Table class="layout-table" />
+
+        <Feed class="layout-feed" />
     </div>
 </template>
 
@@ -73,12 +71,12 @@ export default {
     margin: 0 auto;
     display: grid;
     grid-template-columns: 3fr 4fr 3fr;
+    grid-template-rows: max-content max-content auto;
     grid-gap: 2rem;
     grid-template-areas:
         'header header header'
         'feed info players'
-        'feed table players'
-        'feed actions players';
+        'feed table players';
 }
 .layout-header {
     grid-area: header;
@@ -88,10 +86,7 @@ export default {
 }
 .layout-table {
     grid-area: table;
-    align-self: center;
-}
-.layout-actions {
-    grid-area: actions;
+    align-self: start;
 }
 .layout-feed {
     grid-area: feed;
@@ -147,11 +142,11 @@ button {
 @media screen and (max-width: 990px) {
     .home {
         grid-template-columns: 6fr 3fr;
+        grid-template-rows: max-content max-content max-content auto;
         grid-template-areas:
             'header header'
             'info players'
             'table players'
-            'actions players'
             'feed players';
     }
 }
@@ -162,7 +157,6 @@ button {
             'header header'
             'info info'
             'table table'
-            'actions actions'
             'feed players';
     }
 }
