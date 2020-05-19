@@ -44,7 +44,7 @@ export default {
                 this.addToFeed(await this.getResult());
                 setTimeout(() => {
                     this.clearTable();
-                }, 1500);
+                }, 2000);
             }
         },
     },

@@ -6,6 +6,20 @@ export const getters = {
     firstCard: state => state.hand[0],
     secondCard: state => state.hand[1],
     yourCard: state => state.hand[2],
+    shouldAutoPass: (state, getters) => {
+        if (
+            getters.firstCard &&
+            getters.firstCard.value &&
+            getters.secondCard &&
+            getters.secondCard.value
+        ) {
+            const difference = Math.abs(
+                getters.firstCard.value - getters.secondCard.value
+            );
+            return difference <= 1;
+        }
+        return false;
+    },
 };
 
 export const mutations = {

@@ -42,7 +42,7 @@
 </template>
 
 <script>
-import { mapMutations, mapActions } from 'vuex';
+import { mapGetters, mapMutations, mapActions } from 'vuex';
 
 import IconBase from '@/components/icon-base';
 
@@ -62,6 +62,9 @@ export default {
         },
     },
     computed: {
+        ...mapGetters({
+            shouldAutoPass: 'table/shouldAutoPass',
+        }),
         aceValue() {
             if (this.card.label === 'A') {
                 return this.card.value === 1 ? 'low' : 'high';

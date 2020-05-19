@@ -24,7 +24,7 @@
                 </button>
 
                 <div
-                    v-if="secondCard && secondCard.value && !yourCard"
+                    v-if="showPlayOrPass"
                     key="choice-prompt"
                     class="choice-prompt"
                 >
@@ -32,7 +32,10 @@
                         Play
                     </button>
 
-                    <button class="choice choice--pass" @click="pass">
+                    <button
+                        class="choice choice--pass"
+                        @click="pass('You Passed.')"
+                    >
                         Pass
                     </button>
                 </div>
@@ -59,7 +62,16 @@ export default {
             firstCard: 'table/firstCard',
             secondCard: 'table/secondCard',
             yourCard: 'table/yourCard',
+            shouldAutoPass: 'table/shouldAutoPass',
         }),
+        showPlayOrPass() {
+            return (
+                this.secondCard &&
+                this.secondCard.value &&
+                !this.yourCard &&
+                !this.shouldAutoPass
+            );
+        },
     },
     watch: {
         firstCard(newCard, oldCard) {
@@ -67,6 +79,13 @@ export default {
                 setTimeout(() => {
                     this.dealCard();
                 }, 350);
+            }
+        },
+        shouldAutoPass(shouldPass) {
+            if (shouldPass) {
+                setTimeout(() => {
+                    this.pass('Automatic Pass.');
+                }, 1250);
             }
         },
     },
@@ -78,8 +97,8 @@ export default {
             dealCard: 'deck/DEAL_CARD',
             clearTable: 'table/CLEAR_HAND',
         }),
-        pass() {
-            this.addToFeed('You Passed.');
+        pass(text) {
+            this.addToFeed(text);
             this.clearTable();
         },
     },
