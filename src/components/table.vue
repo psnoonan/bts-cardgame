@@ -1,33 +1,6 @@
 <template>
     <div class="table">
         <div v-for="i in 3" :key="i" :class="['spot', `spot--${i - 1}`]">
-            <transition name="shrink">
-                <template v-if="i - 1 === nextCard">
-                    <div
-                        v-if="nextCard === 2"
-                        key="play-or-pass"
-                        class="choice-prompt"
-                    >
-                        <button class="choice choice--play" @click="dealCard">
-                            Play
-                        </button>
-
-                        <button class="choice choice--pass" @click="pass">
-                            Pass
-                        </button>
-                    </div>
-
-                    <button
-                        v-else
-                        key="deal-button"
-                        class="deal-button"
-                        @click="dealCard"
-                    >
-                        Deal
-                    </button>
-                </template>
-            </transition>
-
             <transition name="fade-down">
                 <PlayingCard
                     v-if="hand[i - 1]"
@@ -36,6 +9,33 @@
                     :index="i - 1"
                     class="card"
                 />
+            </transition>
+        </div>
+
+        <div class="actions">
+            <transition name="shrink" mode="out-in">
+                <button
+                    v-if="!firstCard"
+                    key="deal-button"
+                    class="choice choice--deal"
+                    @click="dealCard"
+                >
+                    Deal
+                </button>
+
+                <div
+                    v-if="secondCard && secondCard.value && !yourCard"
+                    key="choice-prompt"
+                    class="choice-prompt"
+                >
+                    <button class="choice choice--play" @click="dealCard">
+                        Play
+                    </button>
+
+                    <button class="choice choice--pass" @click="pass">
+                        Pass
+                    </button>
+                </div>
             </transition>
         </div>
     </div>
@@ -56,8 +56,19 @@ export default {
             hand: state => state.table.hand,
         }),
         ...mapGetters({
-            nextCard: 'table/nextCard',
+            firstCard: 'table/firstCard',
+            secondCard: 'table/secondCard',
+            yourCard: 'table/yourCard',
         }),
+    },
+    watch: {
+        firstCard(newCard, oldCard) {
+            if (!oldCard && newCard.value) {
+                setTimeout(() => {
+                    this.dealCard();
+                }, 350);
+            }
+        },
     },
     methods: {
         ...mapMutations({
@@ -77,6 +88,7 @@ export default {
 
 <style lang="scss" scoped>
 .table {
+    position: relative;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     grid-template-areas: 'first your second';
@@ -103,42 +115,14 @@ export default {
         grid-area: your;
     }
 }
-.deal-button {
+.actions {
+    grid-area: your;
     position: absolute;
     top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate3d(0, -50%, 0);
     width: 100%;
-    max-width: 75%;
-    padding: 0.5rem;
-    font-size: 1rem;
-    font-weight: 700;
-    line-height: 1;
-    color: #fff;
-    text-shadow: 1px 1px 1px rgba(#454545, 0.4);
-    text-transform: uppercase;
-    border: none;
-    border-radius: 100px;
-    background-color: #fca001;
-    cursor: pointer;
-    transition: all 250ms cubic-bezier(0.25, 0.8, 0.25, 1);
-    &:hover,
-    &:focus {
-        outline: none;
-        transform: translate(-50%, -50%) rotate(-5deg);
-    }
-}
-.choice-prompt {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 100%;
-    max-width: 75%;
+    padding: 0 0.5rem;
     .choice {
-        display: flex;
-        justify-content: center;
-        align-items: center;
         width: 100%;
         margin: 0.5rem 0;
         padding: 0.5rem;
@@ -197,7 +181,7 @@ export default {
 }
 .shrink-enter {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.5);
+    transform: scale(0.5);
 }
 // separate enter and leave to sync with card transition
 .shrink-leave-active {
@@ -205,6 +189,6 @@ export default {
 }
 .shrink-leave-to {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.5);
+    transform: scale(0.5);
 }
 </style>

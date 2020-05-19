@@ -28,15 +28,12 @@
             >
                 <button
                     class="choice choice--high"
-                    @click="setAceValue({ index, value: 14 })"
+                    @click="makeValueChoice(14)"
                 >
                     High
                 </button>
 
-                <button
-                    class="choice choice--low"
-                    @click="setAceValue({ index, value: 1 })"
-                >
+                <button class="choice choice--low" @click="makeValueChoice(1)">
                     Low
                 </button>
             </div>
@@ -45,7 +42,7 @@
 </template>
 
 <script>
-import { mapMutations } from 'vuex';
+import { mapMutations, mapActions } from 'vuex';
 
 import IconBase from '@/components/icon-base';
 
@@ -76,6 +73,17 @@ export default {
         ...mapMutations({
             setAceValue: 'table/SET_ACE_VALUE',
         }),
+        ...mapActions({
+            dealCard: 'deck/DEAL_CARD',
+        }),
+        makeValueChoice(value) {
+            this.setAceValue({ index: this.index, value });
+            if (this.index === 0) {
+                setTimeout(() => {
+                    this.dealCard();
+                }, 250);
+            }
+        },
     },
 };
 </script>

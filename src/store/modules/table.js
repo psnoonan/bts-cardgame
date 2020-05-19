@@ -6,15 +6,6 @@ export const getters = {
     firstCard: state => state.hand[0],
     secondCard: state => state.hand[1],
     yourCard: state => state.hand[2],
-    nextCard: (state, getters) => {
-        if (!getters.firstCard || !getters.firstCard.value) {
-            return 0;
-        } else if (!getters.secondCard || !getters.secondCard.value) {
-            return 1;
-        } else {
-            return 2;
-        }
-    },
 };
 
 export const mutations = {
