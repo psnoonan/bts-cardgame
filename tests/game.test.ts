@@ -295,5 +295,45 @@ describe('game state machine', () => {
       expect(game.players[1].balance).toBe(bobBefore + 1);
       expect(game.pot).toBe(0);
     });
+
+    it('gives remainder to active player on uneven split', () => {
+      startGame([{ name: 'Alice', balance: 20 }, { name: 'Bob', balance: 20 }, { name: 'Carol', balance: 20 }], 1);
+      // pot = 3 (3 players * $1 ante), set to 10 for a clear remainder
+      game.pot = 10;
+
+      cashOut();
+
+      // 10 / 3 = 3 each, remainder 1 goes to active player (Alice, index 0)
+      expect(game.players[0].balance).toBe(19 + 3 + 1); // 19 after ante + share + remainder
+      expect(game.players[1].balance).toBe(19 + 3);
+      expect(game.players[2].balance).toBe(19 + 3);
+      expect(game.pot).toBe(0);
+    });
+
+    it('excludes eliminated players from pot split', () => {
+      startGame([{ name: 'Alice', balance: 20 }, { name: 'Bob', balance: 20 }, { name: 'Carol', balance: 20 }], 1);
+      game.pot = 10;
+      game.players[1].eliminated = true; // Bob is out
+
+      cashOut();
+
+      // 10 / 2 active = 5 each, no remainder
+      expect(game.players[0].balance).toBe(19 + 5);
+      expect(game.players[1].balance).toBe(19); // Bob gets nothing
+      expect(game.players[2].balance).toBe(19 + 5);
+      expect(game.pot).toBe(0);
+    });
+
+    it('handles zero pot gracefully', () => {
+      startGame([{ name: 'Alice', balance: 20 }, { name: 'Bob', balance: 20 }], 1);
+      game.pot = 0;
+      const aliceBefore = game.players[0].balance;
+
+      cashOut();
+
+      expect(game.phase).toBe('gameover');
+      expect(game.players[0].balance).toBe(aliceBefore); // unchanged
+      expect(game.pot).toBe(0);
+    });
   });
 });
