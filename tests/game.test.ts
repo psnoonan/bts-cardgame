@@ -281,23 +281,22 @@ describe('game state machine', () => {
   });
 
   describe('auto-pass on narrow spread', () => {
-    it('auto-passes when spread is 0', () => {
+    it('auto-passes and deals next hand when spread is 0', () => {
       startGame([{ name: 'Alice', balance: 20 }, { name: 'Bob', balance: 20 }], 1);
-      game.hand = [
-        { suit: 'hearts', rank: '7', value: 7 },
-        { suit: 'spades', rank: '7', value: 7 }
-      ];
-      game.phase = 'dealing';
-      // Manually trigger the spread check that dealBoundaryCards would do
+      // Put two 7s at top (will auto-pass), then two cards with wide spread
       game.deck.live.unshift(
         { suit: 'hearts', rank: '7', value: 7 },
-        { suit: 'spades', rank: '7', value: 7 }
+        { suit: 'spades', rank: '7', value: 7 },
+        { suit: 'clubs', rank: '3', value: 3 },
+        { suit: 'diamonds', rank: 'K', value: 13 }
       );
       dealBoundaryCards();
 
-      // Should auto-pass and advance
-      expect(game.phase).toBe('dealing');
+      // Should have auto-passed Alice (7-7), advanced to Bob,
+      // then dealt Bob a valid hand (3-K) and moved to betting
       expect(game.activePlayerIndex).toBe(1);
+      expect(game.phase).toBe('betting');
+      expect(game.hand).toHaveLength(2);
     });
   });
 

@@ -138,19 +138,36 @@ export function startGame(setupPlayers: SetupPlayer[], anteAmount: number) {
 }
 
 export function dealBoundaryCards() {
-  ensureDeckHasCards(3);
-  const { card: card1, remaining: after1 } = dealCard(game.deck.live);
-  const { card: card2, remaining: after2 } = dealCard(after1);
-  game.hand = [card1, card2];
-  game.deck.live = after2;
+  // Loop handles auto-pass inline — we can't rely on the $effect re-triggering
+  // because phase is already 'dealing' and setting it again is a no-op in Svelte 5
+  while (true) {
+    ensureDeckHasCards(3);
+    const { card: card1, remaining: after1 } = dealCard(game.deck.live);
+    const { card: card2, remaining: after2 } = dealCard(after1);
+    game.hand = [card1, card2];
+    game.deck.live = after2;
 
-  addLog(`Dealt ${card1.rank}${suitSymbol(card1.suit)} and ${card2.rank}${suitSymbol(card2.suit)}`);
+    addLog(`Dealt ${card1.rank}${suitSymbol(card1.suit)} and ${card2.rank}${suitSymbol(card2.suit)}`);
 
-  const hasUnresolvedAce = game.hand.some(c => c.rank === 'A' && c.value === null);
-  if (hasUnresolvedAce) {
-    game.phase = 'ace-choice';
-  } else {
-    checkSpreadAndProceed();
+    // Aces need player input — exit the loop, let UI handle
+    const hasUnresolvedAce = game.hand.some(c => c.rank === 'A' && c.value === null);
+    if (hasUnresolvedAce) {
+      game.phase = 'ace-choice';
+      return;
+    }
+
+    const spread = getSpread(game.hand[0], game.hand[1]);
+    if (spread !== null && spread <= 1) {
+      addLog(`Spread is ${spread} — auto-pass`);
+      discardHand();
+      advanceToNextPlayer();
+      // Loop to deal for the next player
+      continue;
+    }
+
+    // Valid spread — move to betting
+    game.phase = 'betting';
+    return;
   }
 }
 
