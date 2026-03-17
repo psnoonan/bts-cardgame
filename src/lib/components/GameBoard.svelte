@@ -9,12 +9,22 @@
     game,
     dealBoundaryCards,
     dealThirdCard,
-    continueAfterAutoPass,
     cashOut,
     getLastResult
   } from '$lib/game.svelte';
 
   let resultFlash = $state('');
+
+  // Rotate player list so active player is always first, show max 3
+  const visiblePlayers = $derived(() => {
+    const active = game.activePlayerIndex;
+    const all = game.players;
+    const rotated = [...all.slice(active), ...all.slice(0, active)];
+    return rotated.slice(0, 3).map((p, i) => ({
+      player: p,
+      originalIndex: (active + i) % all.length
+    }));
+  });
 
   // Auto-deal when entering dealing phase
   $effect(() => {
@@ -28,7 +38,6 @@
   });
 
   // Auto-deal third card after wager is locked in (dramatic reveal)
-  // Player advances via ResultDialog button, not a timer
   $effect(() => {
     if (game.phase === 'result') {
       const readyToDeal = untrack(() => game.hand.length === 2);
@@ -40,7 +49,6 @@
           else if (result === 'lose') resultFlash = 'flash-lose';
           else if (result === 'post') resultFlash = 'flash-post';
 
-          // Flash clears after animation completes
           setTimeout(() => { resultFlash = ''; }, 1600);
         }, 500);
         return () => clearTimeout(timeout);
@@ -52,7 +60,7 @@
 <div class="board">
   <!-- Status bar -->
   <div class="status-bar">
-    <span class="pot">POT: <strong>${game.pot}</strong></span>
+    <span class="pot">POT: ${game.pot}</span>
     <span class="deck-count">DECK: {game.deck.live.length}</span>
     <button class="cash-out secondary" onclick={cashOut}>CASH OUT</button>
   </div>
@@ -68,12 +76,6 @@
   <div class="actions-area">
     {#if game.phase === 'ace-choice'}
       <AceChoice hand={game.hand} />
-    {:else if game.phase === 'auto-pass'}
-      <div class="auto-pass-msg">
-        <p class="auto-pass-label">SPREAD TOO NARROW</p>
-        <p class="auto-pass-sub">AUTO-PASS</p>
-        <button onclick={continueAfterAutoPass}>NEXT</button>
-      </div>
     {:else if game.phase === 'betting'}
       <WagerInput />
     {:else if game.phase === 'dealing'}
@@ -81,10 +83,10 @@
     {/if}
   </div>
 
-  <!-- Player list -->
+  <!-- Player list — rotated so active is always top, capped at 3 -->
   <div class="players">
-    {#each game.players as player, i}
-      <PlayerBar {player} isActive={i === game.activePlayerIndex} />
+    {#each visiblePlayers() as { player, originalIndex }}
+      <PlayerBar {player} isActive={originalIndex === game.activePlayerIndex} />
     {/each}
   </div>
 
@@ -137,31 +139,8 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 16px 0;
-    min-height: 220px;
-  }
-
-  .auto-pass-msg {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    padding: 16px;
-    border: var(--border);
-    background: var(--bg);
-  }
-
-  .auto-pass-label {
-    font-family: var(--font-pixel);
-    font-size: 1rem;
-    letter-spacing: 1px;
-    color: var(--muted);
-  }
-
-  .auto-pass-sub {
-    font-family: var(--font-pixel);
-    font-size: 1rem;
-    letter-spacing: 2px;
+    padding: 8px 0;
+    min-height: 80px;
   }
 
   .dealing-label {
