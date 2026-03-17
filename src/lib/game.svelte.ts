@@ -78,6 +78,7 @@ function collectAntes(): boolean {
   for (let i = 0; i < game.players.length; i++) {
     const p = game.players[i];
     if (!p.eliminated && p.balance < game.ante) {
+      pendingAnteCollection = true;
       game.phase = 'rebuy';
       game.activePlayerIndex = i;
       return false;
@@ -189,6 +190,7 @@ export function playerPlay(wager: number) {
 }
 
 let lastResult: Result | null = null;
+let pendingAnteCollection = false;
 
 export function dealThirdCard() {
   const { card, remaining } = dealCard(game.deck.live);
@@ -259,16 +261,45 @@ export function handleRebuy(amount: number) {
   player.balance += amount;
   player.totalBuyIn += amount;
   addLog(`${player.name} buys back in for $${amount}`);
-  startNextRound();
+
+  if (pendingAnteCollection) {
+    // Rebuy was triggered by ante shortfall — retry collecting antes
+    pendingAnteCollection = false;
+    const antesCollected = collectAntes();
+    if (antesCollected) {
+      game.phase = 'dealing';
+    }
+    // If not collected, another player can't afford ante — stays in rebuy
+  } else {
+    // Rebuy was triggered by going bust on a wager — just advance, no re-ante
+    advanceToNextPlayer();
+    if (!checkGameOver()) {
+      game.phase = 'dealing';
+    }
+  }
 }
 
 export function handleElimination() {
   const player = game.activePlayer;
   player.eliminated = true;
   addLog(`${player.name} is out!`);
-  advanceToNextPlayer();
+
   if (!checkGameOver()) {
-    game.phase = 'dealing';
+    if (pendingAnteCollection) {
+      // Eliminated during ante collection — retry collecting from remaining players
+      pendingAnteCollection = false;
+      const antesCollected = collectAntes();
+      if (antesCollected) {
+        // Need to advance past the eliminated player to deal
+        advanceToNextPlayer();
+        game.phase = 'dealing';
+      }
+      // If not collected, another player can't afford ante — stays in rebuy
+    } else {
+      // Eliminated after going bust on a wager — just advance
+      advanceToNextPlayer();
+      game.phase = 'dealing';
+    }
   }
 }
 
@@ -300,6 +331,8 @@ export function resetGame() {
   game.hand = [];
   game.currentWager = 0;
   game.log = [];
+  lastResult = null;
+  pendingAnteCollection = false;
   // NOTE: lastSetup is intentionally NOT reset so Play Again preserves settings
 }
 

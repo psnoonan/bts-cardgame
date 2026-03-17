@@ -8,9 +8,12 @@ export function getSpread(card1: Card, card2: Card): number | null {
 }
 
 export function resolveResult(boundary1: Card, boundary2: Card, middle: Card): Result {
-  const low = Math.min(boundary1.value!, boundary2.value!);
-  const high = Math.max(boundary1.value!, boundary2.value!);
-  const val = middle.value!;
+  if (boundary1.value === null || boundary2.value === null || middle.value === null) {
+    throw new Error('resolveResult called with unresolved card values');
+  }
+  const low = Math.min(boundary1.value, boundary2.value);
+  const high = Math.max(boundary1.value, boundary2.value);
+  const val = middle.value;
   if (val === low || val === high) return 'post';
   if (val > low && val < high) return 'win';
   return 'lose';
