@@ -18,7 +18,8 @@
   .log {
     border-top: var(--border);
     padding: 12px 0;
-    max-height: 200px;
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
   }
   .entry {

@@ -99,6 +99,7 @@
     display: flex;
     flex-direction: column;
     gap: 0;
+    height: 100%;
   }
 
   .status-bar {
