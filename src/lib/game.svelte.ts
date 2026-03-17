@@ -145,9 +145,8 @@ export function dealBoundaryCards() {
   game.hand = [card1];
   game.deck.live = after1;
 
-  addLog(`Dealt ${card1.rank}${suitSymbol(card1.suit)}`);
-
   if (card1.rank === 'A' && card1.value === null) {
+    addLog(`Dealt ${card1.rank}${suitSymbol(card1.suit)}`);
     game.phase = 'ace-choice';
     return;
   }
@@ -158,10 +157,11 @@ export function dealBoundaryCards() {
 
 function dealSecondBoundaryCard() {
   const { card: card2, remaining: after2 } = dealCard(game.deck.live);
+  const card1 = game.hand[0];
   game.hand = [...game.hand, card2];
   game.deck.live = after2;
 
-  addLog(`and ${card2.rank}${suitSymbol(card2.suit)}`);
+  addLog(`Dealt ${card1.rank}${suitSymbol(card1.suit)} and ${card2.rank}${suitSymbol(card2.suit)}`);
 
   if (card2.rank === 'A' && card2.value === null) {
     game.phase = 'ace-choice';

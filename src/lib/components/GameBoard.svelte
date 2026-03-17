@@ -65,6 +65,9 @@
     <button class="cash-out secondary" onclick={cashOut}>CASH OUT</button>
   </div>
 
+  <!-- Active player label -->
+  <p class="turn-label">{game.activePlayer.name}'s turn</p>
+
   <!-- Card area -->
   <div class="card-area {resultFlash}">
     <Card card={game.hand[0] ?? null} />
@@ -126,6 +129,17 @@
     margin-left: auto;
     font-size: 1rem;
     padding: 8px 12px;
+  }
+
+  .turn-label {
+    font-family: var(--font-pixel);
+    font-size: 1rem;
+    text-align: center;
+    padding-top: 16px;
+    letter-spacing: 1px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .card-area {

@@ -15,7 +15,6 @@
   <span class="balance">
     {#if player.eliminated}OUT{:else}${player.balance}{/if}
   </span>
-  <span class="active-tag" class:visible={isActive && !player.eliminated}>ACTIVE</span>
 </div>
 
 <style>
@@ -32,8 +31,7 @@
   }
   .player-bar.active {
     border-left-color: var(--fg);
-    font-weight: bold;
-    background: rgba(26, 26, 26, 0.08);
+    background: rgba(26, 26, 26, 0.05);
   }
   .player-bar.eliminated {
     opacity: 0.35;
@@ -41,25 +39,20 @@
   }
   .indicator {
     width: 16px;
+    flex-shrink: 0;
     font-family: var(--font-pixel);
     font-size: 1rem;
   }
-  .name { flex: 1; }
+  .name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   .balance {
+    flex-shrink: 0;
     font-family: var(--font-pixel);
     font-size: 1rem;
-  }
-  .active-tag {
-    font-family: var(--font-pixel);
-    font-size: 1rem;
-    background: var(--fg);
-    color: var(--bg);
-    padding: 4px 8px;
-    letter-spacing: 1px;
-    border: 2px solid var(--fg);
-    visibility: hidden;
-  }
-  .active-tag.visible {
-    visibility: visible;
   }
 </style>

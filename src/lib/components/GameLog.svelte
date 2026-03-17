@@ -29,6 +29,9 @@
     line-height: 1.6;
     color: var(--fg);
   }
+  .entry:nth-child(even) {
+    background: rgba(26, 26, 26, 0.04);
+  }
   .entry:first-child {
     font-weight: bold;
   }
