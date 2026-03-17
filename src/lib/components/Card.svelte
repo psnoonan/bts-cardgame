@@ -53,7 +53,7 @@
 
   .value {
     position: absolute;
-    font-size: 0.75rem;
+    font-size: 1rem;
     line-height: 1;
   }
 

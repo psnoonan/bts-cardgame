@@ -43,7 +43,7 @@
     align-items: center;
   }
   h3 {
-    font-size: 0.7rem;
+    font-size: 1rem;
     text-align: center;
   }
   .rebuy-section {
@@ -54,7 +54,7 @@
   }
   .label {
     font-family: var(--font-pixel);
-    font-size: 0.55rem;
+    font-size: 1rem;
     letter-spacing: 1px;
   }
   .actions {

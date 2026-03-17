@@ -92,7 +92,7 @@
 
   label {
     font-family: var(--font-pixel);
-    font-size: 0.6rem;
+    font-size: 1rem;
     letter-spacing: 1px;
   }
 
@@ -122,7 +122,7 @@
 
   .player-label {
     font-family: var(--font-pixel);
-    font-size: 0.55rem;
+    font-size: 1rem;
     white-space: nowrap;
   }
 
@@ -133,7 +133,7 @@
   .deal-btn {
     margin-top: 16px;
     padding: 16px 24px;
-    font-size: 0.85rem;
+    font-size: 1.1rem;
     box-shadow: var(--shadow);
   }
 </style>

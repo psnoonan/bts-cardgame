@@ -42,16 +42,16 @@
   .indicator {
     width: 16px;
     font-family: var(--font-pixel);
-    font-size: 0.7rem;
+    font-size: 1rem;
   }
   .name { flex: 1; }
   .balance {
     font-family: var(--font-pixel);
-    font-size: 0.7rem;
+    font-size: 1rem;
   }
   .active-tag {
     font-family: var(--font-pixel);
-    font-size: 0.5rem;
+    font-size: 1rem;
     background: var(--fg);
     color: var(--bg);
     padding: 4px 8px;

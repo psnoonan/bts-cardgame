@@ -52,11 +52,11 @@
   }
   .label {
     font-family: var(--font-pixel);
-    font-size: 0.55rem;
+    font-size: 1rem;
     letter-spacing: 1px;
   }
   .range {
-    font-size: 0.75rem;
+    font-size: 1rem;
     color: var(--muted);
   }
 </style>

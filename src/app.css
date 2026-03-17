@@ -43,7 +43,7 @@ h1, h2, h3, h4 {
 
 button {
   font-family: var(--font-pixel);
-  font-size: 0.75rem;
+  font-size: 1rem;
   border: var(--border);
   box-shadow: var(--shadow-sm);
   padding: 10px 20px;

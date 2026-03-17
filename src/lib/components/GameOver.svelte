@@ -61,18 +61,18 @@
   }
   .rank {
     font-family: var(--font-pixel);
-    font-size: 0.6rem;
-    width: 24px;
+    font-size: 1rem;
+    width: 32px;
   }
   .name { flex: 1; font-weight: bold; }
   .balance {
     font-family: var(--font-pixel);
-    font-size: 0.6rem;
+    font-size: 1rem;
   }
   .net {
     font-family: var(--font-pixel);
-    font-size: 0.5rem;
-    width: 60px;
+    font-size: 1rem;
+    width: 80px;
     text-align: right;
   }
   .net.positive { color: var(--success); }

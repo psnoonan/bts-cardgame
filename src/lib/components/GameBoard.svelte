@@ -122,7 +122,7 @@
     padding: 12px 0;
     border-bottom: var(--border);
     font-family: var(--font-pixel);
-    font-size: 0.65rem;
+    font-size: 1rem;
     letter-spacing: 1px;
   }
 
@@ -131,7 +131,7 @@
 
   .cash-out {
     margin-left: auto;
-    font-size: 0.55rem;
+    font-size: 1rem;
     padding: 8px 12px;
   }
 
@@ -152,7 +152,7 @@
 
   .result-label, .dealing-label {
     font-family: var(--font-pixel);
-    font-size: 0.75rem;
+    font-size: 1rem;
     letter-spacing: 1px;
     text-align: center;
   }

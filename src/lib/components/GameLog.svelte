@@ -23,7 +23,7 @@
   }
   .entry {
     font-family: var(--font-body);
-    font-size: 0.8rem;
+    font-size: 1rem;
     padding: 2px 12px;
     line-height: 1.6;
     color: var(--fg);
