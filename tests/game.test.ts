@@ -123,7 +123,7 @@ describe('game state machine', () => {
   });
 
   describe('resolving a full turn — post', () => {
-    it('player pays full pot amount', () => {
+    it('player pays double their wager', () => {
       startGame([{ name: 'Alice', balance: 20 }, { name: 'Bob', balance: 20 }], 1);
       game.pot = 10;
       game.hand = [
@@ -138,10 +138,29 @@ describe('game state machine', () => {
       dealThirdCard();
       advanceAfterResult();
 
-      // Alice: 19 - min(pot=10, balance=19) = 9
-      expect(game.players[0].balance).toBe(9);
-      expect(game.pot).toBe(20); // 10 + 10 penalty
+      // Alice: 19 - (3 * 2) = 13, pot: 10 + 6 = 16
+      expect(game.players[0].balance).toBe(13);
+      expect(game.pot).toBe(16);
       expect(game.phase).toBe('dealing');
+    });
+
+    it('post penalty is capped at player balance', () => {
+      startGame([{ name: 'Alice', balance: 5 }, { name: 'Bob', balance: 20 }], 1);
+      game.pot = 10;
+      game.hand = [
+        { suit: 'hearts', rank: '5', value: 5 },
+        { suit: 'spades', rank: 'J', value: 11 }
+      ];
+      game.phase = 'betting';
+      playerPlay(4); // wager 4, double = 8, but Alice only has 4 left
+
+      game.deck.live.unshift({ suit: 'clubs', rank: '5', value: 5 });
+      dealThirdCard();
+      advanceAfterResult();
+
+      // Alice: 4 - min(8, 4) = 0 → triggers rebuy
+      expect(game.players[0].balance).toBe(0);
+      expect(game.phase).toBe('rebuy');
     });
   });
 

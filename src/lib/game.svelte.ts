@@ -248,7 +248,8 @@ function applyResult(result: Result) {
     addLog(`${player.name} loses $${game.currentWager}`);
     handlePlayerDebit();
   } else {
-    const penalty = Math.min(game.pot, player.balance);
+    // Post: pay double the wager
+    const penalty = Math.min(game.currentWager * 2, player.balance);
     player.balance -= penalty;
     game.pot += penalty;
     addLog(`${player.name} POSTS — pays $${penalty}!`);
