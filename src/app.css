@@ -4,7 +4,7 @@
   --accent: #ffd700;
   --danger: #cc0000;
   --success: #2d5a1e;
-  --muted: #888888;
+  --muted: #666666;
 
   --border: 4px solid var(--fg);
   --shadow: 6px 6px 0 var(--fg);
@@ -43,7 +43,7 @@ h1, h2, h3, h4 {
 
 button {
   font-family: var(--font-pixel);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   border: var(--border);
   box-shadow: var(--shadow-sm);
   padding: 10px 20px;

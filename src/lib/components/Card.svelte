@@ -30,8 +30,8 @@
 
 <style>
   .card {
-    width: 80px;
-    height: 112px;
+    width: 90px;
+    height: 126px;
     border: var(--border);
     box-shadow: var(--shadow);
     background: #fff;
@@ -53,23 +53,23 @@
 
   .value {
     position: absolute;
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     line-height: 1;
   }
 
   .top-left {
-    top: 6px;
-    left: 6px;
+    top: 8px;
+    left: 8px;
   }
 
   .bottom-right {
-    bottom: 6px;
-    right: 6px;
+    bottom: 8px;
+    right: 8px;
     transform: rotate(180deg);
   }
 
   .suit.center {
-    font-size: 1.5rem;
+    font-size: 2rem;
   }
 
   .card-back {

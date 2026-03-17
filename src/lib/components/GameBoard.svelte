@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import Card from './Card.svelte';
   import PlayerBar from './PlayerBar.svelte';
   import AceChoice from './AceChoice.svelte';
@@ -15,35 +16,47 @@
 
   let resultFlash = $state('');
 
+  // Track the advance timeout at component level so cleanup can reach it
+  let advanceTimeout: ReturnType<typeof setTimeout>;
+
   // Auto-deal when entering dealing phase
+  // Only track game.phase — read hand.length without tracking to avoid
+  // the effect re-running (and cleaning up) when dealBoundaryCards changes hand
   $effect(() => {
-    if (game.phase === 'dealing' && game.hand.length === 0) {
-      const timeout = setTimeout(() => dealBoundaryCards(), 300);
-      return () => clearTimeout(timeout);
+    if (game.phase === 'dealing') {
+      const handEmpty = untrack(() => game.hand.length === 0);
+      if (handEmpty) {
+        const timeout = setTimeout(() => dealBoundaryCards(), 300);
+        return () => clearTimeout(timeout);
+      }
     }
   });
 
   // Auto-deal third card after wager is locked in, then advance after delay
+  // Only track game.phase — reading hand.length with untrack prevents the
+  // effect from re-running when dealThirdCard() adds the third card,
+  // which would kill the advance timeout via cleanup
   $effect(() => {
-    if (game.phase === 'result' && game.hand.length === 2) {
-      let innerTimeout: ReturnType<typeof setTimeout>;
-      const outerTimeout = setTimeout(() => {
-        dealThirdCard();
-        const result = getLastResult();
-        if (result === 'win') resultFlash = 'flash-win';
-        else if (result === 'lose') resultFlash = 'flash-lose';
-        else if (result === 'post') resultFlash = 'flash-post';
+    if (game.phase === 'result') {
+      const readyToDeal = untrack(() => game.hand.length === 2);
+      if (readyToDeal) {
+        const dealTimeout = setTimeout(() => {
+          dealThirdCard();
+          const result = getLastResult();
+          if (result === 'win') resultFlash = 'flash-win';
+          else if (result === 'lose') resultFlash = 'flash-lose';
+          else if (result === 'post') resultFlash = 'flash-post';
 
-        // Show result for 2 seconds, then advance
-        innerTimeout = setTimeout(() => {
-          resultFlash = '';
-          advanceAfterResult();
-        }, 2000);
-      }, 500);
-      return () => {
-        clearTimeout(outerTimeout);
-        clearTimeout(innerTimeout);
-      };
+          advanceTimeout = setTimeout(() => {
+            resultFlash = '';
+            advanceAfterResult();
+          }, 2000);
+        }, 500);
+        return () => {
+          clearTimeout(dealTimeout);
+          clearTimeout(advanceTimeout);
+        };
+      }
     }
   });
 </script>
@@ -109,17 +122,17 @@
     padding: 12px 0;
     border-bottom: var(--border);
     font-family: var(--font-pixel);
-    font-size: 0.55rem;
+    font-size: 0.65rem;
     letter-spacing: 1px;
   }
 
-  .pot { color: var(--accent); }
+  .pot { color: var(--fg); }
   .deck-count { color: var(--muted); }
 
   .cash-out {
     margin-left: auto;
-    font-size: 0.45rem;
-    padding: 6px 10px;
+    font-size: 0.55rem;
+    padding: 8px 12px;
   }
 
   .card-area {
@@ -139,7 +152,7 @@
 
   .result-label, .dealing-label {
     font-family: var(--font-pixel);
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     letter-spacing: 1px;
     text-align: center;
   }
