@@ -18,6 +18,7 @@ function createGameState() {
   let currentWager = $state(0);
   let log = $state<LogEntry[]>([]);
   let lastSetup = $state<{ players: SetupPlayer[]; ante: number } | null>(null);
+  let lastResult = $state<Result | null>(null);
 
   const activePlayer = $derived(players[activePlayerIndex]);
 
@@ -43,6 +44,8 @@ function createGameState() {
     get lastSetup() { return lastSetup; },
     set lastSetup(v: { players: SetupPlayer[]; ante: number } | null) { lastSetup = v; },
     get activePlayer() { return activePlayer; },
+    get lastResult() { return lastResult; },
+    set lastResult(v: Result | null) { lastResult = v; },
   };
 }
 
@@ -60,6 +63,9 @@ function ensureDeckHasCards(count: number) {
       used: []
     };
     addLog('Deck reshuffled');
+  }
+  if (game.deck.live.length < count) {
+    throw new Error(`Not enough cards: need ${count}, have ${game.deck.live.length}`);
   }
 }
 
@@ -218,26 +224,26 @@ export function playerPlay(wager: number) {
   game.phase = 'result';
 }
 
-let lastResult: Result | null = null;
 let pendingAnteCollection = false;
 
 export function dealThirdCard() {
+  ensureDeckHasCards(1);
   const { card, remaining } = dealCard(game.deck.live);
   game.hand = [...game.hand, card];
   game.deck.live = remaining;
-  lastResult = resolveResult(game.hand[0], game.hand[1], card);
-  addLog(`${card.rank}${suitSymbol(card.suit)} dealt — ${resultMessage(lastResult)}`);
+  game.lastResult = resolveResult(game.hand[0], game.hand[1], card);
+  addLog(`${card.rank}${suitSymbol(card.suit)} dealt — ${resultMessage(game.lastResult!)}`);
   // Result is NOT applied here — UI calls advanceAfterResult() after display delay
 }
 
 export function advanceAfterResult() {
-  if (game.hand.length !== 3 || lastResult === null) return;
-  applyResult(lastResult);
-  lastResult = null;
+  if (game.hand.length !== 3 || game.lastResult === null) return;
+  applyResult(game.lastResult);
+  game.lastResult = null;
 }
 
 export function getLastResult(): Result | null {
-  return lastResult;
+  return game.lastResult;
 }
 
 function startNextRound() {
@@ -361,7 +367,7 @@ export function resetGame() {
   game.hand = [];
   game.currentWager = 0;
   game.log = [];
-  lastResult = null;
+  game.lastResult = null;
   pendingAnteCollection = false;
   // NOTE: lastSetup is intentionally NOT reset so Play Again preserves settings
 }

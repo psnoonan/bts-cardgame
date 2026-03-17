@@ -1,7 +1,10 @@
 <script lang="ts">
-  import { game, advanceAfterResult, getLastResult } from '$lib/game.svelte';
+  import { game, advanceAfterResult } from '$lib/game.svelte';
 
-  const result = $derived(getLastResult());
+  const result = $derived(game.lastResult);
+  const postPenalty = $derived(
+    result === 'post' ? Math.min(game.currentWager * 2, game.activePlayer.balance) : 0
+  );
 </script>
 
 {#if result}
@@ -17,7 +20,7 @@
         <p class="impact">-${game.currentWager} to pot</p>
       {:else}
         <p class="result post">POST!</p>
-        <p class="impact">DOUBLE: -${Math.min(game.currentWager * 2, game.activePlayer.balance + game.currentWager * 2)}</p>
+        <p class="impact">DOUBLE: -${postPenalty}</p>
       {/if}
 
       <button onclick={advanceAfterResult}>CONTINUE</button>

@@ -48,11 +48,13 @@ describe('shuffle', () => {
     expect(deck).toEqual(original);
   });
 
-  it('changes card order (statistical)', () => {
+  it('is a permutation of the original deck', () => {
     const deck = createDeck();
     const shuffled = shuffle(deck);
-    const samePosition = deck.filter((c, i) => c.suit === shuffled[i].suit && c.rank === shuffled[i].rank);
-    expect(samePosition.length).toBeLessThan(52);
+    const sortKey = (c: { suit: string; rank: string }) => `${c.suit}-${c.rank}`;
+    const original = deck.map(sortKey).sort();
+    const result = shuffled.map(sortKey).sort();
+    expect(result).toEqual(original);
   });
 });
 

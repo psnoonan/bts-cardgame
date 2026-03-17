@@ -31,6 +31,9 @@ export function shuffle(deck: Card[]): Card[] {
 }
 
 export function dealCard(deck: Card[]): { card: Card; remaining: Card[] } {
+  if (deck.length === 0) {
+    throw new Error('Cannot deal from an empty deck');
+  }
   const [card, ...remaining] = deck;
   return { card, remaining };
 }
