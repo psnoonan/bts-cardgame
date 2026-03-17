@@ -139,27 +139,37 @@ export function startGame(setupPlayers: SetupPlayer[], anteAmount: number) {
 
 export function dealBoundaryCards() {
   ensureDeckHasCards(3);
+
+  // Deal first card only — if it's an Ace, player must decide before seeing the second
   const { card: card1, remaining: after1 } = dealCard(game.deck.live);
-  const { card: card2, remaining: after2 } = dealCard(after1);
-  game.hand = [card1, card2];
-  game.deck.live = after2;
+  game.hand = [card1];
+  game.deck.live = after1;
 
-  addLog(`Dealt ${card1.rank}${suitSymbol(card1.suit)} and ${card2.rank}${suitSymbol(card2.suit)}`);
+  addLog(`Dealt ${card1.rank}${suitSymbol(card1.suit)}`);
 
-  const hasUnresolvedAce = game.hand.some(c => c.rank === 'A' && c.value === null);
-  if (hasUnresolvedAce) {
+  if (card1.rank === 'A' && card1.value === null) {
     game.phase = 'ace-choice';
     return;
   }
 
-  const spread = getSpread(game.hand[0], game.hand[1]);
-  if (spread !== null && spread <= 1) {
-    addLog(`Spread is ${spread} — auto-pass`);
-    game.phase = 'auto-pass';
+  // First card isn't an Ace — deal second immediately
+  dealSecondBoundaryCard();
+}
+
+function dealSecondBoundaryCard() {
+  const { card: card2, remaining: after2 } = dealCard(game.deck.live);
+  game.hand = [...game.hand, card2];
+  game.deck.live = after2;
+
+  addLog(`and ${card2.rank}${suitSymbol(card2.suit)}`);
+
+  if (card2.rank === 'A' && card2.value === null) {
+    game.phase = 'ace-choice';
     return;
   }
 
-  game.phase = 'betting';
+  // Both cards resolved — check spread
+  checkSpreadAndProceed();
 }
 
 export function continueAfterAutoPass() {
@@ -171,9 +181,16 @@ export function continueAfterAutoPass() {
 export function setAceValue(cardIndex: number, value: 1 | 14) {
   game.hand[cardIndex] = { ...game.hand[cardIndex], value };
   addLog(`${game.activePlayer.name} sets Ace ${value === 14 ? 'HIGH' : 'LOW'}`);
-  const stillUnresolved = game.hand.filter((c, i) => i < 2 && c.rank === 'A' && c.value === null);
-  if (stillUnresolved.length === 0) {
-    checkSpreadAndProceed();
+
+  if (game.hand.length === 1) {
+    // First card Ace resolved — now deal the second card
+    dealSecondBoundaryCard();
+  } else {
+    // Second card Ace resolved — check spread
+    const stillUnresolved = game.hand.filter((c, i) => i < 2 && c.rank === 'A' && c.value === null);
+    if (stillUnresolved.length === 0) {
+      checkSpreadAndProceed();
+    }
   }
 }
 
@@ -350,7 +367,9 @@ export function resetGame() {
 }
 
 function discardHand() {
-  game.deck.used = [...game.deck.used, ...game.hand];
+  // Reset Ace values to null so they're unresolved when reshuffled back in
+  const resetCards = game.hand.map(c => c.rank === 'A' ? { ...c, value: null } : c);
+  game.deck.used = [...game.deck.used, ...resetCards];
   game.hand = [];
   game.currentWager = 0;
 }
