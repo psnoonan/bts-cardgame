@@ -1,0 +1,332 @@
+import type { Card, Player, Phase, LogEntry } from './types';
+import { createDeck, shuffle, dealCard } from './deck';
+import { getSpread, resolveResult, maxWager, type Result } from './rules';
+
+type SetupPlayer = { name: string; balance: number };
+
+function createGameState() {
+  let phase = $state<Phase>('setup');
+  let players = $state<Player[]>([]);
+  let activePlayerIndex = $state(0);
+  let pot = $state(0);
+  let ante = $state(1);
+  let deck = $state<{ live: Card[]; used: Card[] }>({ live: [], used: [] });
+  let hand = $state<Card[]>([]);
+  let currentWager = $state(0);
+  let log = $state<LogEntry[]>([]);
+  let lastSetup = $state<{ players: SetupPlayer[]; ante: number } | null>(null);
+
+  const activePlayer = $derived(players[activePlayerIndex]);
+  const unresolvedAces = $derived(
+    hand.filter((c, i) => i < 2 && c.rank === 'A' && c.value === null)
+  );
+
+  return {
+    get phase() { return phase; },
+    set phase(v: Phase) { phase = v; },
+    get players() { return players; },
+    set players(v: Player[]) { players = v; },
+    get activePlayerIndex() { return activePlayerIndex; },
+    set activePlayerIndex(v: number) { activePlayerIndex = v; },
+    get pot() { return pot; },
+    set pot(v: number) { pot = v; },
+    get ante() { return ante; },
+    set ante(v: number) { ante = v; },
+    get deck() { return deck; },
+    set deck(v: { live: Card[]; used: Card[] }) { deck = v; },
+    get hand() { return hand; },
+    set hand(v: Card[]) { hand = v; },
+    get currentWager() { return currentWager; },
+    set currentWager(v: number) { currentWager = v; },
+    get log() { return log; },
+    set log(v: LogEntry[]) { log = v; },
+    get lastSetup() { return lastSetup; },
+    set lastSetup(v: { players: SetupPlayer[]; ante: number } | null) { lastSetup = v; },
+    get activePlayer() { return activePlayer; },
+    get unresolvedAces() { return unresolvedAces; },
+  };
+}
+
+export const game = createGameState();
+
+function addLog(message: string) {
+  game.log = [{ message, timestamp: Date.now() }, ...game.log];
+}
+
+function ensureDeckHasCards(count: number) {
+  if (game.deck.live.length < count && game.deck.used.length > 0) {
+    const reshuffled = shuffle(game.deck.used);
+    game.deck = {
+      live: [...game.deck.live, ...reshuffled],
+      used: []
+    };
+    addLog('Deck reshuffled');
+  }
+}
+
+function advanceToNextPlayer() {
+  const count = game.players.length;
+  let next = (game.activePlayerIndex + 1) % count;
+  let checked = 0;
+  while (game.players[next].eliminated && checked < count) {
+    next = (next + 1) % count;
+    checked++;
+  }
+  game.activePlayerIndex = next;
+}
+
+function collectAntes(): boolean {
+  for (let i = 0; i < game.players.length; i++) {
+    const p = game.players[i];
+    if (!p.eliminated && p.balance < game.ante) {
+      game.phase = 'rebuy';
+      game.activePlayerIndex = i;
+      return false;
+    }
+  }
+  for (const p of game.players) {
+    if (!p.eliminated) {
+      p.balance -= game.ante;
+      game.pot += game.ante;
+    }
+  }
+  addLog(`Everyone antes $${game.ante}`);
+  return true;
+}
+
+function activePlayers(): Player[] {
+  return game.players.filter(p => !p.eliminated);
+}
+
+function checkGameOver(): boolean {
+  if (activePlayers().length <= 1) {
+    game.phase = 'gameover';
+    addLog('Game over — last player standing!');
+    return true;
+  }
+  return false;
+}
+
+export function startGame(setupPlayers: SetupPlayer[], anteAmount: number) {
+  const shuffled = shuffle(createDeck());
+  game.deck = { live: shuffled, used: [] };
+  game.ante = anteAmount;
+  game.pot = 0;
+  game.hand = [];
+  game.log = [];
+  game.activePlayerIndex = 0;
+  game.currentWager = 0;
+
+  game.players = setupPlayers.map(p => ({
+    name: p.name,
+    balance: p.balance,
+    startingBalance: p.balance,
+    totalBuyIn: p.balance,
+    eliminated: false
+  }));
+
+  game.lastSetup = { players: setupPlayers, ante: anteAmount };
+
+  for (const p of game.players) {
+    p.balance -= anteAmount;
+    game.pot += anteAmount;
+  }
+
+  addLog('Game started!');
+  addLog(`Everyone antes $${anteAmount}`);
+  game.phase = 'dealing';
+}
+
+export function dealBoundaryCards() {
+  ensureDeckHasCards(3);
+  const { card: card1, remaining: after1 } = dealCard(game.deck.live);
+  const { card: card2, remaining: after2 } = dealCard(after1);
+  game.hand = [card1, card2];
+  game.deck.live = after2;
+
+  addLog(`Dealt ${card1.rank}${suitSymbol(card1.suit)} and ${card2.rank}${suitSymbol(card2.suit)}`);
+
+  const hasUnresolvedAce = game.hand.some(c => c.rank === 'A' && c.value === null);
+  if (hasUnresolvedAce) {
+    game.phase = 'ace-choice';
+  } else {
+    checkSpreadAndProceed();
+  }
+}
+
+export function setAceValue(cardIndex: number, value: 1 | 14) {
+  game.hand[cardIndex] = { ...game.hand[cardIndex], value };
+  addLog(`${game.activePlayer.name} sets Ace ${value === 14 ? 'HIGH' : 'LOW'}`);
+  const stillUnresolved = game.hand.filter((c, i) => i < 2 && c.rank === 'A' && c.value === null);
+  if (stillUnresolved.length === 0) {
+    checkSpreadAndProceed();
+  }
+}
+
+function checkSpreadAndProceed() {
+  const spread = getSpread(game.hand[0], game.hand[1]);
+  if (spread !== null && spread <= 1) {
+    addLog(`Spread is ${spread} — auto-pass`);
+    discardHand();
+    advanceToNextPlayer();
+    game.phase = 'dealing';
+  } else {
+    game.phase = 'betting';
+  }
+}
+
+export function playerPass() {
+  addLog(`${game.activePlayer.name} passes`);
+  discardHand();
+  advanceToNextPlayer();
+  game.phase = 'dealing';
+}
+
+export function playerPlay(wager: number) {
+  const max = maxWager(game.activePlayer.balance, game.pot);
+  game.currentWager = Math.min(Math.max(1, wager), max);
+  addLog(`${game.activePlayer.name} wagers $${game.currentWager}`);
+  game.phase = 'result';
+}
+
+export function dealThirdCard() {
+  const { card, remaining } = dealCard(game.deck.live);
+  game.hand = [...game.hand, card];
+  game.deck.live = remaining;
+  const result = resolveResult(game.hand[0], game.hand[1], card);
+  addLog(`${card.rank}${suitSymbol(card.suit)} dealt — ${resultMessage(result)}`);
+  // Result is NOT applied here — UI calls advanceAfterResult() after display delay
+}
+
+export function advanceAfterResult() {
+  if (game.hand.length !== 3) return;
+  const result = resolveResult(game.hand[0], game.hand[1], game.hand[2]);
+  applyResult(result);
+}
+
+function applyResult(result: Result) {
+  const player = game.activePlayer;
+
+  if (result === 'win') {
+    const winnings = Math.min(game.currentWager, game.pot);
+    player.balance += winnings;
+    game.pot -= winnings;
+    addLog(`${player.name} wins $${winnings}!`);
+    discardHand();
+    advanceToNextPlayer();
+    if (!checkGameOver()) {
+      const antesCollected = collectAntes();
+      if (antesCollected) {
+        game.phase = 'dealing';
+      }
+    }
+  } else if (result === 'lose') {
+    player.balance -= game.currentWager;
+    game.pot += game.currentWager;
+    addLog(`${player.name} loses $${game.currentWager}`);
+    discardHand();
+    if (player.balance <= 0) {
+      player.balance = 0;
+      game.phase = 'rebuy';
+    } else {
+      advanceToNextPlayer();
+      game.phase = 'dealing';
+    }
+  } else {
+    // post
+    const penalty = Math.min(game.pot, player.balance);
+    player.balance -= penalty;
+    game.pot += penalty;
+    addLog(`${player.name} POSTS — pays $${penalty}!`);
+    discardHand();
+    if (player.balance <= 0) {
+      player.balance = 0;
+      game.phase = 'rebuy';
+    } else {
+      advanceToNextPlayer();
+      game.phase = 'dealing';
+    }
+  }
+}
+
+export function handleRebuy(amount: number) {
+  const player = game.activePlayer;
+  player.balance += amount;
+  player.totalBuyIn += amount;
+  addLog(`${player.name} buys back in for $${amount}`);
+  advanceToNextPlayer();
+  if (!checkGameOver()) {
+    const antesCollected = collectAntes();
+    if (antesCollected) {
+      game.phase = 'dealing';
+    }
+  }
+}
+
+export function handleElimination() {
+  const player = game.activePlayer;
+  player.eliminated = true;
+  addLog(`${player.name} is out!`);
+  advanceToNextPlayer();
+  if (!checkGameOver()) {
+    game.phase = 'dealing';
+  }
+}
+
+export function cashOut() {
+  const active = activePlayers();
+  if (active.length > 0 && game.pot > 0) {
+    const share = Math.floor(game.pot / active.length);
+    const remainder = game.pot - share * active.length;
+    for (const p of active) {
+      p.balance += share;
+    }
+    if (remainder > 0) {
+      game.activePlayer.balance += remainder;
+    }
+    game.pot = 0;
+    addLog(`Pot split: $${share} each`);
+  }
+  game.phase = 'gameover';
+  addLog('Game over — cashed out!');
+}
+
+export function resetGame() {
+  game.phase = 'setup';
+  game.players = [];
+  game.activePlayerIndex = 0;
+  game.pot = 0;
+  game.ante = 1;
+  game.deck = { live: [], used: [] };
+  game.hand = [];
+  game.currentWager = 0;
+  game.log = [];
+  // NOTE: lastSetup is intentionally NOT reset so Play Again preserves settings
+}
+
+function discardHand() {
+  game.deck.used = [...game.deck.used, ...game.hand];
+  game.hand = [];
+  game.currentWager = 0;
+}
+
+function suitSymbol(suit: string): string {
+  const symbols: Record<string, string> = {
+    hearts: '\u2665', diamonds: '\u2666',
+    clubs: '\u2663', spades: '\u2660'
+  };
+  return symbols[suit] || suit;
+}
+
+function resultMessage(result: Result): string {
+  if (result === 'win') return 'INSIDE! WIN!';
+  if (result === 'lose') return 'OUTSIDE! LOSE!';
+  return 'MATCH! POST!';
+}
+
+export function getLastResult(): Result | null {
+  if (game.hand.length === 3) {
+    return resolveResult(game.hand[0], game.hand[1], game.hand[2]);
+  }
+  return null;
+}
