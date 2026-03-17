@@ -28,3 +28,14 @@ export type LogEntry = {
   message: string;
   timestamp: number;
 };
+
+export const SUIT_SYMBOLS: Record<Suit, string> = {
+  hearts: '\u2665',
+  diamonds: '\u2666',
+  clubs: '\u2663',
+  spades: '\u2660'
+};
+
+export function suitSymbol(suit: Suit): string {
+  return SUIT_SYMBOLS[suit];
+}

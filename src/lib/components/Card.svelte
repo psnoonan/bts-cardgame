@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Card } from '$lib/types';
+  import { SUIT_SYMBOLS } from '$lib/types';
 
   type Props = {
     card?: Card | null;
@@ -7,13 +8,6 @@
   };
 
   let { card = null, faceDown = false }: Props = $props();
-
-  const suitSymbols: Record<string, string> = {
-    hearts: '\u2665',
-    diamonds: '\u2666',
-    clubs: '\u2663',
-    spades: '\u2660'
-  };
 
   const isRed = $derived(
     card ? card.suit === 'hearts' || card.suit === 'diamonds' : false
@@ -25,7 +19,7 @@
 <div class="card" class:face-down={faceDown || !card} class:red={isRed}>
   {#if card && !faceDown}
     <span class="value top-left">{displayValue}</span>
-    <span class="suit center">{suitSymbols[card.suit]}</span>
+    <span class="suit center">{SUIT_SYMBOLS[card.suit]}</span>
     <span class="value bottom-right">{displayValue}</span>
   {:else}
     <div class="card-back">

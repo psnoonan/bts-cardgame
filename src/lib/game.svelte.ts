@@ -1,6 +1,9 @@
 import type { Card, Player, Phase, LogEntry } from './types';
+import { suitSymbol } from './types';
 import { createDeck, shuffle, dealCard } from './deck';
 import { getSpread, resolveResult, maxWager, type Result } from './rules';
+
+const MAX_LOG_ENTRIES = 50;
 
 type SetupPlayer = { name: string; balance: number };
 
@@ -17,9 +20,6 @@ function createGameState() {
   let lastSetup = $state<{ players: SetupPlayer[]; ante: number } | null>(null);
 
   const activePlayer = $derived(players[activePlayerIndex]);
-  const unresolvedAces = $derived(
-    hand.filter((c, i) => i < 2 && c.rank === 'A' && c.value === null)
-  );
 
   return {
     get phase() { return phase; },
@@ -43,14 +43,13 @@ function createGameState() {
     get lastSetup() { return lastSetup; },
     set lastSetup(v: { players: SetupPlayer[]; ante: number } | null) { lastSetup = v; },
     get activePlayer() { return activePlayer; },
-    get unresolvedAces() { return unresolvedAces; },
   };
 }
 
 export const game = createGameState();
 
 function addLog(message: string) {
-  game.log = [{ message, timestamp: Date.now() }, ...game.log];
+  game.log = [{ message, timestamp: Date.now() }, ...game.log].slice(0, MAX_LOG_ENTRIES);
 }
 
 function ensureDeckHasCards(count: number) {
@@ -189,19 +188,46 @@ export function playerPlay(wager: number) {
   game.phase = 'result';
 }
 
+let lastResult: Result | null = null;
+
 export function dealThirdCard() {
   const { card, remaining } = dealCard(game.deck.live);
   game.hand = [...game.hand, card];
   game.deck.live = remaining;
-  const result = resolveResult(game.hand[0], game.hand[1], card);
-  addLog(`${card.rank}${suitSymbol(card.suit)} dealt — ${resultMessage(result)}`);
+  lastResult = resolveResult(game.hand[0], game.hand[1], card);
+  addLog(`${card.rank}${suitSymbol(card.suit)} dealt — ${resultMessage(lastResult)}`);
   // Result is NOT applied here — UI calls advanceAfterResult() after display delay
 }
 
 export function advanceAfterResult() {
-  if (game.hand.length !== 3) return;
-  const result = resolveResult(game.hand[0], game.hand[1], game.hand[2]);
-  applyResult(result);
+  if (game.hand.length !== 3 || lastResult === null) return;
+  applyResult(lastResult);
+  lastResult = null;
+}
+
+export function getLastResult(): Result | null {
+  return lastResult;
+}
+
+function startNextRound() {
+  advanceToNextPlayer();
+  if (!checkGameOver()) {
+    const antesCollected = collectAntes();
+    if (antesCollected) {
+      game.phase = 'dealing';
+    }
+  }
+}
+
+function handlePlayerDebit() {
+  discardHand();
+  if (game.activePlayer.balance <= 0) {
+    game.activePlayer.balance = 0;
+    game.phase = 'rebuy';
+  } else {
+    advanceToNextPlayer();
+    game.phase = 'dealing';
+  }
 }
 
 function applyResult(result: Result) {
@@ -213,39 +239,18 @@ function applyResult(result: Result) {
     game.pot -= winnings;
     addLog(`${player.name} wins $${winnings}!`);
     discardHand();
-    advanceToNextPlayer();
-    if (!checkGameOver()) {
-      const antesCollected = collectAntes();
-      if (antesCollected) {
-        game.phase = 'dealing';
-      }
-    }
+    startNextRound();
   } else if (result === 'lose') {
     player.balance -= game.currentWager;
     game.pot += game.currentWager;
     addLog(`${player.name} loses $${game.currentWager}`);
-    discardHand();
-    if (player.balance <= 0) {
-      player.balance = 0;
-      game.phase = 'rebuy';
-    } else {
-      advanceToNextPlayer();
-      game.phase = 'dealing';
-    }
+    handlePlayerDebit();
   } else {
-    // post
     const penalty = Math.min(game.pot, player.balance);
     player.balance -= penalty;
     game.pot += penalty;
     addLog(`${player.name} POSTS — pays $${penalty}!`);
-    discardHand();
-    if (player.balance <= 0) {
-      player.balance = 0;
-      game.phase = 'rebuy';
-    } else {
-      advanceToNextPlayer();
-      game.phase = 'dealing';
-    }
+    handlePlayerDebit();
   }
 }
 
@@ -254,13 +259,7 @@ export function handleRebuy(amount: number) {
   player.balance += amount;
   player.totalBuyIn += amount;
   addLog(`${player.name} buys back in for $${amount}`);
-  advanceToNextPlayer();
-  if (!checkGameOver()) {
-    const antesCollected = collectAntes();
-    if (antesCollected) {
-      game.phase = 'dealing';
-    }
-  }
+  startNextRound();
 }
 
 export function handleElimination() {
@@ -310,23 +309,8 @@ function discardHand() {
   game.currentWager = 0;
 }
 
-function suitSymbol(suit: string): string {
-  const symbols: Record<string, string> = {
-    hearts: '\u2665', diamonds: '\u2666',
-    clubs: '\u2663', spades: '\u2660'
-  };
-  return symbols[suit] || suit;
-}
-
 function resultMessage(result: Result): string {
   if (result === 'win') return 'INSIDE! WIN!';
   if (result === 'lose') return 'OUTSIDE! LOSE!';
   return 'MATCH! POST!';
-}
-
-export function getLastResult(): Result | null {
-  if (game.hand.length === 3) {
-    return resolveResult(game.hand[0], game.hand[1], game.hand[2]);
-  }
-  return null;
 }

@@ -26,7 +26,8 @@
   // Auto-deal third card after wager is locked in, then advance after delay
   $effect(() => {
     if (game.phase === 'result' && game.hand.length === 2) {
-      const timeout = setTimeout(() => {
+      let innerTimeout: ReturnType<typeof setTimeout>;
+      const outerTimeout = setTimeout(() => {
         dealThirdCard();
         const result = getLastResult();
         if (result === 'win') resultFlash = 'flash-win';
@@ -34,12 +35,15 @@
         else if (result === 'post') resultFlash = 'flash-post';
 
         // Show result for 2 seconds, then advance
-        setTimeout(() => {
+        innerTimeout = setTimeout(() => {
           resultFlash = '';
           advanceAfterResult();
         }, 2000);
       }, 500);
-      return () => clearTimeout(timeout);
+      return () => {
+        clearTimeout(outerTimeout);
+        clearTimeout(innerTimeout);
+      };
     }
   });
 </script>
