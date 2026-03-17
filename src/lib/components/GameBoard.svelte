@@ -110,8 +110,14 @@
     letter-spacing: 1px;
   }
 
-  .pot { color: var(--fg); }
-  .deck-count { color: var(--muted); }
+  .pot {
+    color: var(--fg);
+    min-width: 100px;
+  }
+  .deck-count {
+    color: var(--muted);
+    min-width: 90px;
+  }
 
   .cash-out {
     margin-left: auto;
@@ -130,8 +136,9 @@
   .actions-area {
     display: flex;
     justify-content: center;
+    align-items: center;
     padding: 16px 0;
-    min-height: 60px;
+    min-height: 220px;
   }
 
   .auto-pass-msg {
