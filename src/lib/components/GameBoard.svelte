@@ -9,19 +9,14 @@
     game,
     dealBoundaryCards,
     dealThirdCard,
-    advanceAfterResult,
+    continueAfterAutoPass,
     cashOut,
     getLastResult
   } from '$lib/game.svelte';
 
   let resultFlash = $state('');
 
-  // Track the advance timeout at component level so cleanup can reach it
-  let advanceTimeout: ReturnType<typeof setTimeout>;
-
   // Auto-deal when entering dealing phase
-  // Only track game.phase — read hand.length without tracking to avoid
-  // the effect re-running (and cleaning up) when dealBoundaryCards changes hand
   $effect(() => {
     if (game.phase === 'dealing') {
       const handEmpty = untrack(() => game.hand.length === 0);
@@ -32,30 +27,23 @@
     }
   });
 
-  // Auto-deal third card after wager is locked in, then advance after delay
-  // Only track game.phase — reading hand.length with untrack prevents the
-  // effect from re-running when dealThirdCard() adds the third card,
-  // which would kill the advance timeout via cleanup
+  // Auto-deal third card after wager is locked in (dramatic reveal)
+  // Player advances via ResultDialog button, not a timer
   $effect(() => {
     if (game.phase === 'result') {
       const readyToDeal = untrack(() => game.hand.length === 2);
       if (readyToDeal) {
-        const dealTimeout = setTimeout(() => {
+        const timeout = setTimeout(() => {
           dealThirdCard();
           const result = getLastResult();
           if (result === 'win') resultFlash = 'flash-win';
           else if (result === 'lose') resultFlash = 'flash-lose';
           else if (result === 'post') resultFlash = 'flash-post';
 
-          advanceTimeout = setTimeout(() => {
-            resultFlash = '';
-            advanceAfterResult();
-          }, 2000);
+          // Flash clears after animation completes
+          setTimeout(() => { resultFlash = ''; }, 1600);
         }, 500);
-        return () => {
-          clearTimeout(dealTimeout);
-          clearTimeout(advanceTimeout);
-        };
+        return () => clearTimeout(timeout);
       }
     }
   });
@@ -80,18 +68,14 @@
   <div class="actions-area">
     {#if game.phase === 'ace-choice'}
       <AceChoice hand={game.hand} />
+    {:else if game.phase === 'auto-pass'}
+      <div class="auto-pass-msg">
+        <p class="auto-pass-label">SPREAD TOO NARROW</p>
+        <p class="auto-pass-sub">AUTO-PASS</p>
+        <button onclick={continueAfterAutoPass}>NEXT</button>
+      </div>
     {:else if game.phase === 'betting'}
       <WagerInput />
-    {:else if game.phase === 'result' && game.hand.length === 3}
-      <p class="result-label">
-        {#if getLastResult() === 'win'}
-          WIN! +${game.currentWager}
-        {:else if getLastResult() === 'lose'}
-          LOSE! -${game.currentWager}
-        {:else}
-          POST!
-        {/if}
-      </p>
     {:else if game.phase === 'dealing'}
       <p class="dealing-label">Dealing...</p>
     {/if}
@@ -150,7 +134,30 @@
     min-height: 60px;
   }
 
-  .result-label, .dealing-label {
+  .auto-pass-msg {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border: var(--border);
+    background: var(--bg);
+  }
+
+  .auto-pass-label {
+    font-family: var(--font-pixel);
+    font-size: 1rem;
+    letter-spacing: 1px;
+    color: var(--muted);
+  }
+
+  .auto-pass-sub {
+    font-family: var(--font-pixel);
+    font-size: 1rem;
+    letter-spacing: 2px;
+  }
+
+  .dealing-label {
     font-family: var(--font-pixel);
     font-size: 1rem;
     letter-spacing: 1px;

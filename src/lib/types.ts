@@ -19,6 +19,7 @@ export type Phase =
   | 'setup'
   | 'dealing'
   | 'ace-choice'
+  | 'auto-pass'
   | 'betting'
   | 'result'
   | 'rebuy'

@@ -8,6 +8,7 @@ import {
   playerPlay,
   dealThirdCard,
   advanceAfterResult,
+  continueAfterAutoPass,
   handleRebuy,
   handleElimination,
   cashOut,
@@ -281,9 +282,22 @@ describe('game state machine', () => {
   });
 
   describe('auto-pass on narrow spread', () => {
-    it('auto-passes and deals next hand when spread is 0', () => {
+    it('enters auto-pass phase when spread is 0', () => {
       startGame([{ name: 'Alice', balance: 20 }, { name: 'Bob', balance: 20 }], 1);
-      // Put two 7s at top (will auto-pass), then two cards with wide spread
+      game.deck.live.unshift(
+        { suit: 'hearts', rank: '7', value: 7 },
+        { suit: 'spades', rank: '7', value: 7 }
+      );
+      dealBoundaryCards();
+
+      // Should show the cards and pause at auto-pass phase
+      expect(game.phase).toBe('auto-pass');
+      expect(game.hand).toHaveLength(2);
+      expect(game.activePlayerIndex).toBe(0); // still Alice's turn visually
+    });
+
+    it('continueAfterAutoPass advances to next player and deals', () => {
+      startGame([{ name: 'Alice', balance: 20 }, { name: 'Bob', balance: 20 }], 1);
       game.deck.live.unshift(
         { suit: 'hearts', rank: '7', value: 7 },
         { suit: 'spades', rank: '7', value: 7 },
@@ -291,9 +305,11 @@ describe('game state machine', () => {
         { suit: 'diamonds', rank: 'K', value: 13 }
       );
       dealBoundaryCards();
+      expect(game.phase).toBe('auto-pass');
 
-      // Should have auto-passed Alice (7-7), advanced to Bob,
-      // then dealt Bob a valid hand (3-K) and moved to betting
+      continueAfterAutoPass();
+
+      // Advanced to Bob, dealt valid hand
       expect(game.activePlayerIndex).toBe(1);
       expect(game.phase).toBe('betting');
       expect(game.hand).toHaveLength(2);
