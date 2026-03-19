@@ -1,0 +1,113 @@
+:root {
+  --bg: #f5f0e8;
+  --fg: #1a1a1a;
+  --accent: #ffd700;
+  --danger: #cc0000;
+  --success: #2d5a1e;
+  --muted: #666666;
+
+  --border: 4px solid var(--fg);
+  --shadow: 4px 4px 0 var(--fg);
+  --shadow-sm: 2px 2px 0 var(--fg);
+
+  --font-pixel: 'Press Start 2P', monospace;
+  --font-body: 'Courier New', Courier, monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+body {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-pixel);
+  line-height: 1.4;
+}
+
+button {
+  font-family: var(--font-pixel);
+  font-size: 1rem;
+  border: var(--border);
+  box-shadow: var(--shadow-sm);
+  padding: 10px 20px;
+  cursor: pointer;
+  background: var(--fg);
+  color: var(--bg);
+  transition: transform 0.05s, box-shadow 0.05s;
+  border-radius: 0;
+}
+
+button:hover {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--fg);
+}
+
+button:active {
+  transform: translate(3px, 3px);
+  box-shadow: none;
+}
+
+button.secondary {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: var(--shadow-sm);
+}
+
+input {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  border: var(--border);
+  padding: 8px 12px;
+  background: #fff;
+  color: var(--fg);
+  border-radius: 0;
+}
+
+input:focus {
+  outline: 3px solid var(--accent);
+  outline-offset: -3px;
+}
+
+/* Result flash animations */
+@keyframes flash-green {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: rgba(45, 90, 30, 0.25); }
+}
+
+@keyframes flash-red {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: rgba(204, 0, 0, 0.25); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.flash-win { animation: flash-green 0.4s ease 2; }
+.flash-lose { animation: flash-red 0.4s ease 2; }
+.flash-post { animation: flash-red 0.4s ease 2, shake 0.15s ease 4; }
