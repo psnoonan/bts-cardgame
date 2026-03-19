@@ -19,7 +19,7 @@ A party card game for 2-10 players, built with SvelteKit 5 and a chunky brutalis
 5. **Reveal** — A third card is dealt between the two:
    - **Inside** the range? You win your wager from the pot. Everyone re-antes.
    - **Outside** the range? Your wager goes into the pot.
-   - **Match** one of the boundary cards? You pay double your wager (or your remaining balance if it's lower).
+   - **Match** one of the boundary cards? You pay double your wager (capped at your remaining balance).
 6. **Broke?** — If your balance hits zero, you can re-buy at any amount or bow out.
 7. **Game Over** — Last player standing wins, or the group can **Cash Out** at any time (pot is split evenly).
 

@@ -3,7 +3,7 @@
   import Card from './Card.svelte';
 </script>
 
-<div class="overlay">
+<div class="overlay" role="dialog" aria-modal="true" aria-label="Auto-pass notification">
   <div class="modal">
     <h3>{game.activePlayer.name}</h3>
 

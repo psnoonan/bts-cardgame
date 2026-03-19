@@ -5,7 +5,7 @@
   let amount = $state(game.activePlayer?.startingBalance ?? 20);
 </script>
 
-<div class="overlay">
+<div class="overlay" role="dialog" aria-modal="true" aria-label="Re-buy prompt">
   <div class="modal">
     <h3>{game.activePlayer.name} IS BROKE</h3>
     <div class="rebuy-section">
