@@ -52,6 +52,7 @@ button {
   color: var(--bg);
   transition: transform 0.05s, box-shadow 0.05s;
   border-radius: 0;
+  touch-action: manipulation;
 }
 
 button:hover {
