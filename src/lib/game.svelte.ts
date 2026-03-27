@@ -228,7 +228,10 @@ let pendingAnteCollection = false;
 
 export function dealThirdCard() {
   ensureDeckHasCards(1);
-  const { card, remaining } = dealCard(game.deck.live);
+  let { card, remaining } = dealCard(game.deck.live);
+  if (card.rank === 'A' && card.value === null) {
+    card = { ...card, value: 1 };
+  }
   game.hand = [...game.hand, card];
   game.deck.live = remaining;
   game.lastResult = resolveResult(game.hand[0], game.hand[1], card);
@@ -249,8 +252,12 @@ export function getLastResult(): Result | null {
 function startNextRound() {
   advanceToNextPlayer();
   if (!checkGameOver()) {
-    const antesCollected = collectAntes();
-    if (antesCollected) {
+    if (game.pot <= 0) {
+      const antesCollected = collectAntes();
+      if (antesCollected) {
+        game.phase = 'dealing';
+      }
+    } else {
       game.phase = 'dealing';
     }
   }

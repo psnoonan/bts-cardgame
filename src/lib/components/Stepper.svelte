@@ -6,9 +6,10 @@
     step?: number;
     prefix?: string;
     onchange: (value: number) => void;
+    'aria-labelledby'?: string;
   };
 
-  let { value, min = 1, max = Infinity, step = 1, prefix = '', onchange }: Props = $props();
+  let { value, min = 1, max = Infinity, step = 1, prefix = '', onchange, 'aria-labelledby': ariaLabelledby }: Props = $props();
 
   function decrement() {
     onchange(Math.max(min, value - step));
@@ -32,13 +33,14 @@
   }
 </script>
 
-<div class="stepper">
+<div class="stepper" role="group" aria-labelledby={ariaLabelledby}>
   <button class="step-btn" type="button" onclick={decrement} disabled={value <= min}>-</button>
   <input
     class="step-input"
     type="text"
     inputmode="numeric"
     value="{prefix}{value}"
+    aria-labelledby={ariaLabelledby}
     oninput={handleInput}
     onblur={handleBlur}
   />

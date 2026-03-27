@@ -74,8 +74,8 @@ describe('game state machine', () => {
     it('pays wager from pot on win, triggers re-ante', () => {
       startGame([{ name: 'Alice', balance: 20 }, { name: 'Bob', balance: 20 }], 1);
 
-      // Inflate pot so the $5 wager isn't capped by maxWager
-      game.pot = 10;
+      // Set pot to exactly $5 so it empties on win, triggering re-ante
+      game.pot = 5;
 
       // Manually set hand to known values
       game.hand = [
@@ -222,7 +222,7 @@ describe('game state machine', () => {
     it('triggers rebuy when player cannot afford ante, then collects after rebuy', () => {
       startGame([{ name: 'Alice', balance: 20 }, { name: 'Bob', balance: 1 }], 1);
       // Alice: 19, Bob: 0, pot: 2. Bob can't afford next ante.
-      game.pot = 10;
+      game.pot = 5;
       game.hand = [
         { suit: 'hearts', rank: '3', value: 3 },
         { suit: 'spades', rank: 'K', value: 13 }
@@ -252,7 +252,7 @@ describe('game state machine', () => {
     it('retries ante collection after elimination', () => {
       startGame([{ name: 'Alice', balance: 20 }, { name: 'Bob', balance: 1 }, { name: 'Carol', balance: 20 }], 1);
       // Alice: 19, Bob: 0, Carol: 19, pot: 3
-      game.pot = 10;
+      game.pot = 5;
       game.hand = [
         { suit: 'hearts', rank: '3', value: 3 },
         { suit: 'spades', rank: 'K', value: 13 }
