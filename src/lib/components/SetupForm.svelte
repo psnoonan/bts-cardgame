@@ -40,13 +40,13 @@
 
 <div class="setup">
   <section class="field">
-    <label>HOW MANY PLAYERS?</label>
-    <Stepper value={playerCount} min={2} max={10} onchange={updatePlayerCount} />
+    <span class="label" id="players-label">HOW MANY PLAYERS?</span>
+    <Stepper value={playerCount} min={2} max={10} onchange={updatePlayerCount} aria-labelledby="players-label" />
   </section>
 
   <section class="field">
-    <label>ANTE</label>
-    <Stepper value={ante} min={1} prefix="$" onchange={(v) => ante = v} />
+    <span class="label" id="ante-label">ANTE</span>
+    <Stepper value={ante} min={1} prefix="$" onchange={(v) => ante = v} aria-labelledby="ante-label" />
   </section>
 
   <hr />
@@ -90,7 +90,7 @@
     gap: 8px;
   }
 
-  label {
+  .label {
     font-family: var(--font-pixel);
     font-size: 1rem;
     letter-spacing: 1px;
